@@ -58,8 +58,8 @@ export default function Login() {
         { email: 'jane.student@university.edu', password: 'password123' }
       ]
     : [
-        { email: 'dr.smith@mindsupport.com', password: 'psychologist123' },
-        { email: 'dr.johnson@mindsupport.com', password: 'admin123' }
+        { email: 'dr.smith@saathi.com', password: 'psychologist123' },
+        { email: 'dr.johnson@saathi.com', password: 'admin123' }
       ];
 
   const fillDemo = (credentials: { email: string; password: string }) => {
