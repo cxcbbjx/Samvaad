@@ -224,58 +224,58 @@ export default function PsychologistDashboard() {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-foreground">Analytics Dashboard</h2>
       
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-muted-foreground">Total Sessions Today</CardTitle>
+            <CardTitle className="text-xs lg:text-sm text-muted-foreground">Total Sessions Today</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-primary" />
-              <span className="text-2xl font-bold">12</span>
+              <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
+              <span className="text-xl lg:text-2xl font-bold">12</span>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-muted-foreground">Avg Session Time</CardTitle>
+            <CardTitle className="text-xs lg:text-sm text-muted-foreground">Avg Session Time</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-success" />
-              <span className="text-2xl font-bold">8.5</span>
-              <span className="text-sm text-muted-foreground">min</span>
+              <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-success" />
+              <span className="text-xl lg:text-2xl font-bold">8.5</span>
+              <span className="text-xs lg:text-sm text-muted-foreground">min</span>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-muted-foreground">High Priority</CardTitle>
+            <CardTitle className="text-xs lg:text-sm text-muted-foreground">High Priority</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-destructive" />
-              <span className="text-2xl font-bold">3</span>
+              <AlertTriangle className="w-4 h-4 lg:w-5 lg:h-5 text-destructive" />
+              <span className="text-xl lg:text-2xl font-bold">3</span>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm text-muted-foreground">Active Students</CardTitle>
+            <CardTitle className="text-xs lg:text-sm text-muted-foreground">Active Students</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-warning" />
-              <span className="text-2xl font-bold">24</span>
+              <Users className="w-4 h-4 lg:w-5 lg:h-5 text-warning" />
+              <span className="text-xl lg:text-2xl font-bold">24</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6">
         <Card className="border-border/50">
           <CardHeader>
             <CardTitle>Common Topics</CardTitle>
