@@ -102,9 +102,15 @@ const mockStudentProfiles: StudentProfile[] = [
 
 export default function PsychologistDashboard() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("live-chats");
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const sidebarItems = [
     { id: "live-chats", label: "Live Chats", icon: MessageCircle, count: mockLiveChats.length },
