@@ -36,6 +36,7 @@ const quickOptions = [
 
 export default function StudentChat() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
