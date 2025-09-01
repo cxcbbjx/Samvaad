@@ -2,18 +2,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  ArrowLeft, 
-  MessageCircle, 
-  Calendar, 
-  Clock, 
+import {
+  ArrowLeft,
+  MessageCircle,
+  Calendar,
+  Clock,
   TrendingUp,
   Heart,
   GraduationCap,
   Shield,
-  Download
+  Download,
+  LogOut
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ChatSession {
   id: string;
