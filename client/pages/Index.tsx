@@ -26,10 +26,10 @@ export default function Index() {
         {/* Interface Selection */}
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Student Interface */}
-          <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-xl">
+          <Card className="relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-xl animate-scale-in hover:scale-105">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
             <CardHeader className="relative">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 hover:animate-pulse-glow transition-all">
                 <MessageCircle className="w-6 h-6 text-primary" />
               </div>
               <CardTitle className="text-2xl">I'm a Student</CardTitle>
