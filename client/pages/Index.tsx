@@ -15,7 +15,7 @@ export default function Index() {
             <MessageCircle className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4 animate-slide-up">
-            MindSupport
+            SAATHI
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
             A safe space for students to receive support through AI-powered conversations
