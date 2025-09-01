@@ -102,6 +102,7 @@ export default function PsychologistDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>("live-chats");
   const [searchTerm, setSearchTerm] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const sidebarItems = [
     { id: "live-chats", label: "Live Chats", icon: MessageCircle, count: mockLiveChats.length },
