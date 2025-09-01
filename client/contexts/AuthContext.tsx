@@ -40,20 +40,20 @@ const mockUsers: Record<string, { password: string; user: User }> = {
     }
   },
   // Psychologists
-  'dr.smith@mindsupport.com': {
+  'dr.smith@saathi.com': {
     password: 'psychologist123',
     user: {
       id: 'p1',
-      email: 'dr.smith@mindsupport.com',
+      email: 'dr.smith@saathi.com',
       role: 'psychologist',
       name: 'Dr. Sarah Smith'
     }
   },
-  'dr.johnson@mindsupport.com': {
+  'dr.johnson@saathi.com': {
     password: 'admin123',
     user: {
       id: 'p2',
-      email: 'dr.johnson@mindsupport.com',
+      email: 'dr.johnson@saathi.com',
       role: 'psychologist',
       name: 'Dr. Michael Johnson'
     }
@@ -70,14 +70,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Check for stored authentication on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('mindsupport_user');
+    const storedUser = localStorage.getItem('saathi_user');
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
       } catch (error) {
         console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('mindsupport_user');
+        localStorage.removeItem('saathi_user');
       }
     }
     setIsLoading(false);
@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         userCredentials.user.role === role) {
       
       setUser(userCredentials.user);
-      localStorage.setItem('mindsupport_user', JSON.stringify(userCredentials.user));
+      localStorage.setItem('saathi_user', JSON.stringify(userCredentials.user));
       setIsLoading(false);
       return true;
     }
@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('mindsupport_user');
+    localStorage.removeItem('saathi_user');
   };
 
   const value = {
