@@ -146,21 +146,21 @@ export default function PsychologistDashboard() {
 
   const renderLiveChats = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Live Conversations</h2>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <h2 className="text-xl lg:text-2xl font-bold text-foreground">Live Conversations</h2>
         <div className="flex items-center gap-2">
-          <div className="relative">
+          <div className="relative flex-1 lg:flex-none">
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search conversations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 w-64"
+              className="pl-9 w-full lg:w-64"
             />
           </div>
           <Button variant="outline" size="sm">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
+            <Filter className="w-4 h-4 lg:mr-2" />
+            <span className="hidden lg:inline">Filter</span>
           </Button>
         </div>
       </div>
