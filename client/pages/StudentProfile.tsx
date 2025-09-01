@@ -77,6 +77,12 @@ const getMoodLabel = (mood: ChatSession["mood"]) => {
 
 export default function StudentProfile() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
