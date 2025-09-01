@@ -135,7 +135,7 @@ export default function StudentChat() {
                 <div>
                   <h1 className="font-semibold text-foreground">MindSupport Bot</h1>
                   <p className="text-xs text-success flex items-center gap-1">
-                    <div className="w-2 h-2 bg-success rounded-full"></div>
+                    <span className="w-2 h-2 bg-success rounded-full"></span>
                     Always here for you
                   </p>
                 </div>
