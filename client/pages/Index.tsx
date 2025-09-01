@@ -53,12 +53,12 @@ export default function Index() {
                   Connect with professional help when needed
                 </li>
               </ul>
-              <Button 
-                onClick={() => navigate('/student')}
+              <Button
+                onClick={() => navigate('/login/student')}
                 className="w-full bg-primary hover:bg-primary/90"
                 size="lg"
               >
-                Start Chatting
+                Student Login
               </Button>
             </CardContent>
           </Card>
