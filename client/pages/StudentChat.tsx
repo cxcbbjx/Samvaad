@@ -149,15 +149,26 @@ export default function StudentChat() {
                 </div>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/student/profile')}
-              className="text-muted-foreground"
-            >
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/student/profile')}
+                className="text-muted-foreground"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-destructive hover:border-destructive/50"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </div>
