@@ -118,6 +118,15 @@ export default function StudentProfile() {
               </Button>
               <h1 className="text-xl font-semibold text-foreground">Your Profile</h1>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-destructive hover:border-destructive/50"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </div>
       </div>
