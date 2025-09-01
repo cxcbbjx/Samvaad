@@ -141,7 +141,7 @@ export default function StudentChat() {
                   <Bot className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h1 className="font-semibold text-foreground">MindSupport Bot</h1>
+                  <h1 className="font-semibold text-foreground">SAATHI Bot</h1>
                   <p className="text-xs text-success flex items-center gap-1">
                     <span className="w-2 h-2 bg-success rounded-full"></span>
                     Always here for you
