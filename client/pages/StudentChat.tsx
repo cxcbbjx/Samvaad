@@ -107,6 +107,11 @@ export default function StudentChat() {
     handleSendMessage(option);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
