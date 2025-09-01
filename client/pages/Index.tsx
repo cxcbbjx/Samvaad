@@ -91,13 +91,13 @@ export default function Index() {
                   Student profile management
                 </li>
               </ul>
-              <Button 
-                onClick={() => navigate('/psychologist')}
+              <Button
+                onClick={() => navigate('/login/psychologist')}
                 variant="secondary"
                 className="w-full"
                 size="lg"
               >
-                Access Dashboard
+                Psychologist Login
               </Button>
             </CardContent>
           </Card>
