@@ -23,10 +23,12 @@ import {
   Calendar,
   Activity,
   Menu,
-  X
+  X,
+  LogOut
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 type TabType = "live-chats" | "analytics" | "student-profiles";
 
