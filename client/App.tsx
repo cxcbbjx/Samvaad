@@ -19,20 +19,44 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/student" element={<StudentChat />} />
-          <Route path="/student/profile" element={<StudentProfile />} />
-          <Route path="/psychologist" element={<PsychologistDashboard />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login/:role" element={<Login />} />
+            <Route
+              path="/student"
+              element={
+                <StudentProtectedRoute>
+                  <StudentChat />
+                </StudentProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/profile"
+              element={
+                <StudentProtectedRoute>
+                  <StudentProfile />
+                </StudentProtectedRoute>
+              }
+            />
+            <Route
+              path="/psychologist"
+              element={
+                <PsychologistProtectedRoute>
+                  <PsychologistDashboard />
+                </PsychologistProtectedRoute>
+              }
+            />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
