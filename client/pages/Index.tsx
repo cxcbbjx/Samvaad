@@ -10,7 +10,7 @@ export default function Index() {
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/20 to-primary/10">
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
-        <div className="text-center mb-16 animate-fade-in">
+        <div className="text-center mb-16 animate-fade-in flex flex-col justify-center items-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-8 animate-float">
             <MessageCircle className="w-10 h-10 text-primary" />
           </div>
