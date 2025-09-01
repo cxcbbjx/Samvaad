@@ -503,11 +503,11 @@ export default function PsychologistDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/')}
-              className="w-full text-sidebar-foreground hover:bg-sidebar-accent/50"
+              onClick={handleLogout}
+              className="w-full text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-destructive"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
             </Button>
           </div>
         </div>
