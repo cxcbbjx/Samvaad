@@ -64,10 +64,10 @@ export default function Index() {
           </Card>
 
           {/* Psychologist Interface */}
-          <Card className="relative overflow-hidden border-2 hover:border-secondary/50 transition-all duration-300 hover:shadow-xl">
+          <Card className="relative overflow-hidden border-2 hover:border-secondary/50 transition-all duration-300 hover:shadow-xl animate-scale-in hover:scale-105" style={{ animationDelay: '0.1s' }}>
             <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent" />
             <CardHeader className="relative">
-              <div className="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center mb-4 hover:animate-pulse-glow transition-all">
                 <Brain className="w-6 h-6 text-secondary-foreground" />
               </div>
               <CardTitle className="text-2xl">I'm a Psychologist</CardTitle>
