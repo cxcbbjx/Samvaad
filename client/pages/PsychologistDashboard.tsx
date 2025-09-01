@@ -429,24 +429,49 @@ export default function PsychologistDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="flex">
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <div className="w-64 bg-sidebar border-r border-sidebar-border min-h-screen">
+        <div className={cn(
+          "w-64 bg-sidebar border-r border-sidebar-border min-h-screen transition-transform duration-300 z-50",
+          "lg:relative lg:translate-x-0",
+          sidebarOpen ? "fixed translate-x-0" : "fixed -translate-x-full lg:translate-x-0"
+        )}>
           <div className="p-6">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-sidebar-primary rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-sidebar-primary-foreground" />
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-sidebar-primary rounded-lg flex items-center justify-center">
+                  <Brain className="w-5 h-5 text-sidebar-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="font-bold text-sidebar-foreground">MindSupport</h1>
+                  <p className="text-xs text-sidebar-foreground/70">Psychologist Portal</p>
+                </div>
               </div>
-              <div>
-                <h1 className="font-bold text-sidebar-foreground">MindSupport</h1>
-                <p className="text-xs text-sidebar-foreground/70">Psychologist Portal</p>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden text-sidebar-foreground"
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-            
+
             <nav className="space-y-2">
               {sidebarItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    setSidebarOpen(false);
+                  }}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
                     activeTab === item.id
@@ -465,7 +490,7 @@ export default function PsychologistDashboard() {
               ))}
             </nav>
           </div>
-          
+
           <div className="absolute bottom-6 left-6 right-6">
             <Button
               variant="ghost"
@@ -480,7 +505,25 @@ export default function PsychologistDashboard() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 lg:p-8 p-4">
+          {/* Mobile Header */}
+          <div className="lg:hidden mb-6">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(true)}
+                className="text-foreground"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+              <h1 className="font-semibold text-foreground">
+                {sidebarItems.find(item => item.id === activeTab)?.label}
+              </h1>
+              <div></div>
+            </div>
+          </div>
+
           {renderContent()}
         </div>
       </div>
