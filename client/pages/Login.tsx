@@ -216,7 +216,10 @@ export default function Login() {
                 className="w-full text-left p-3 bg-muted/30 hover:bg-muted/50 rounded-lg transition-colors text-sm"
                 disabled={isLoading}
               >
-                <div className="font-medium text-foreground">{cred.email}</div>
+                <div className="font-medium text-foreground">{cred.label}</div>
+                <div className="text-muted-foreground">
+                  {isStudent ? 'SAATHI-ID' : 'Email'}: {cred.identifier}
+                </div>
                 <div className="text-muted-foreground">Password: {cred.password}</div>
               </button>
             ))}
