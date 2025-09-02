@@ -18,10 +18,6 @@ export function createServer() {
   app.use(express.json({ limit: '10mb' })); // Increased limit for AI requests
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // Initialize AI services on server start
-  initializeAIService().catch(error => {
-    console.error('Failed to initialize AI services:', error);
-  });
 
   // Health check endpoints
   app.get("/api/health", healthCheck);
