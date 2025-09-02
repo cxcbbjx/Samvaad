@@ -129,13 +129,15 @@ export default function Login() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="identifier">
+                  {isStudent ? 'SAATHI-ID' : 'Email'}
+                </Label>
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
+                  id="identifier"
+                  name="identifier"
+                  type={isStudent ? 'text' : 'email'}
+                  placeholder={isStudent ? 'Enter your SAATHI-ID (STU123456)' : 'Enter your email'}
+                  value={formData.identifier}
                   onChange={handleInputChange}
                   className="border-border/50 focus:border-primary/50"
                   disabled={isLoading}
