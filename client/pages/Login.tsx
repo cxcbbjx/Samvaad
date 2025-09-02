@@ -35,7 +35,7 @@ export default function Login() {
 
     // Additional validation for student SAATHI-ID format
     if (isStudent && !formData.identifier.match(/^STU\d{6}$/)) {
-      setError('Please enter a valid SAATHI-ID (format: STU123456)');
+      setError('Please enter a valid SAMVAAD-ID (format: STU123456)');
       return;
     }
 
@@ -46,7 +46,7 @@ export default function Login() {
       navigate(isStudent ? '/student' : '/psychologist');
     } else {
       if (isStudent) {
-        setError('Invalid SAATHI-ID or password. Please check your credentials.');
+        setError('Invalid SAMVAAD-ID or password. Please check your credentials.');
       } else {
         setError('Invalid email or password. Please try again.');
       }
@@ -72,8 +72,8 @@ export default function Login() {
         { identifier: 'STU789012', password: 'demo456', label: 'Demo Student 2' }
       ]
     : [
-        { identifier: 'dr.smith@saathi.com', password: 'psychologist123', label: 'Dr. Smith' },
-        { identifier: 'dr.johnson@saathi.com', password: 'admin123', label: 'Dr. Johnson' }
+        { identifier: 'dr.smith@samvaad.com', password: 'psychologist123', label: 'Dr. Smith' },
+        { identifier: 'dr.johnson@samvaad.com', password: 'admin123', label: 'Dr. Johnson' }
       ];
 
   const fillDemo = (credentials: { identifier: string; password: string }) => {
@@ -130,13 +130,13 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="identifier">
-                  {isStudent ? 'SAATHI-ID' : 'Email'}
+                  {isStudent ? 'SAMVAAD-ID' : 'Email'}
                 </Label>
                 <Input
                   id="identifier"
                   name="identifier"
                   type={isStudent ? 'text' : 'email'}
-                  placeholder={isStudent ? 'Enter your SAATHI-ID (STU123456)' : 'Enter your email'}
+                  placeholder={isStudent ? 'Enter your SAMVAAD-ID (STU123456)' : 'Enter your email'}
                   value={formData.identifier}
                   onChange={handleInputChange}
                   className="border-border/50 focus:border-primary/50"
@@ -218,7 +218,7 @@ export default function Login() {
               >
                 <div className="font-medium text-foreground">{cred.label}</div>
                 <div className="text-muted-foreground">
-                  {isStudent ? 'SAATHI-ID' : 'Email'}: {cred.identifier}
+                  {isStudent ? 'SAMVAAD-ID' : 'Email'}: {cred.identifier}
                 </div>
                 <div className="text-muted-foreground">Password: {cred.password}</div>
               </button>
