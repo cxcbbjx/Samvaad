@@ -82,13 +82,19 @@ class ChatService {
         }
       }
 
-      // Parse JSON safely
+      // Parse JSON safely using clones to avoid re-reading the same stream
       let data: any;
       try {
-        data = await response.json();
+        const jsonClone = response.clone();
+        data = await jsonClone.json();
       } catch (e) {
-        const text = await response.text();
-        data = (() => { try { return JSON.parse(text); } catch { return { success: false, error: text }; } })();
+        try {
+          const textClone = response.clone();
+          const text = await textClone.text();
+          data = (() => { try { return JSON.parse(text); } catch { return { success: false, error: text }; } })();
+        } catch {
+          data = { success: false, error: 'Invalid response' };
+        }
       }
 
       if (data?.success && data?.data?.conversationId) {
