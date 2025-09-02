@@ -40,20 +40,20 @@ const mockUsers: Record<string, { password: string; user: User }> = {
     }
   },
   // Psychologists
-  'dr.smith@saathi.com': {
+  'dr.smith@samvaad.com': {
     password: 'psychologist123',
     user: {
       id: 'p1',
-      email: 'dr.smith@saathi.com',
+      email: 'dr.smith@samvaad.com',
       role: 'psychologist',
       name: 'Dr. Sarah Smith'
     }
   },
-  'dr.johnson@saathi.com': {
+  'dr.johnson@samvaad.com': {
     password: 'admin123',
     user: {
       id: 'p2',
-      email: 'dr.johnson@saathi.com',
+      email: 'dr.johnson@samvaad.com',
       role: 'psychologist',
       name: 'Dr. Michael Johnson'
     }
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Check for stored authentication on mount
   useEffect(() => {
     // Initialize demo student records if they don't exist
-    const existingStudents = localStorage.getItem('saathi_students');
+    const existingStudents = localStorage.getItem('samvaad_students');
     if (!existingStudents) {
       const demoStudents = [
         {
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           phone: '9876543210',
           emergencyContact: 'Parent Name',
           emergencyPhone: '9876543211',
-          saathiId: 'STU123456',
+          samvaadId: 'STU123456',
           tempPassword: 'demo123',
           registrationDate: new Date().toISOString(),
           isActive: true
@@ -95,23 +95,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           phone: '9876543212',
           emergencyContact: 'Guardian Name',
           emergencyPhone: '9876543213',
-          saathiId: 'STU789012',
+          samvaadId: 'STU789012',
           tempPassword: 'demo456',
           registrationDate: new Date().toISOString(),
           isActive: true
         }
       ];
-      localStorage.setItem('saathi_students', JSON.stringify(demoStudents));
+      localStorage.setItem('samvaad_students', JSON.stringify(demoStudents));
     }
 
-    const storedUser = localStorage.getItem('saathi_user');
+    const storedUser = localStorage.getItem('samvaad_user');
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
       } catch (error) {
         console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('saathi_user');
+        localStorage.removeItem('samvaad_user');
       }
     }
     setIsLoading(false);
@@ -125,21 +125,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     if (role === 'student') {
       // For students, identifier is SAATHI-ID
-      const students = JSON.parse(localStorage.getItem('saathi_students') || '[]');
+      const students = JSON.parse(localStorage.getItem('samvaad_students') || '[]');
       const student = students.find((s: any) =>
-        s.saathiId === identifier.toUpperCase() && s.tempPassword === password
+        s.samvaadId === identifier.toUpperCase() && s.tempPassword === password
       );
 
       if (student) {
         const user: User = {
-          id: student.saathiId,
+          id: student.samvaadId,
           email: student.email,
           role: 'student',
           name: student.name
         };
 
         setUser(user);
-        localStorage.setItem('saathi_user', JSON.stringify(user));
+        localStorage.setItem('samvaad_user', JSON.stringify(user));
         setIsLoading(false);
         return true;
       }
@@ -152,7 +152,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           userCredentials.user.role === role) {
 
         setUser(userCredentials.user);
-        localStorage.setItem('saathi_user', JSON.stringify(userCredentials.user));
+        localStorage.setItem('samvaad_user', JSON.stringify(userCredentials.user));
         setIsLoading(false);
         return true;
       }
@@ -164,7 +164,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('saathi_user');
+    localStorage.removeItem('samvaad_user');
   };
 
   const value = {

@@ -458,7 +458,7 @@ export default function PsychologistDashboard() {
                   <Brain className="w-5 h-5 text-sidebar-primary-foreground" />
                 </div>
                 <div>
-                  <h1 className="font-bold text-sidebar-foreground">SAATHI</h1>
+                  <h1 className="font-bold text-sidebar-foreground">SAMVAAD</h1>
                   <p className="text-xs text-sidebar-foreground/70">Psychologist Portal</p>
                 </div>
               </div>
