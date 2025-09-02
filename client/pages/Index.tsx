@@ -53,13 +53,23 @@ export default function Index() {
                   Connect with professional help when needed
                 </li>
               </ul>
-              <Button
-                onClick={() => navigate('/login/student')}
-                className="w-full bg-primary hover:bg-primary/90"
-                size="lg"
-              >
-                Student Login
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => navigate('/register/student')}
+                  className="w-full bg-primary hover:bg-primary/90"
+                  size="lg"
+                >
+                  Register (New Students)
+                </Button>
+                <Button
+                  onClick={() => navigate('/login/student')}
+                  variant="outline"
+                  className="w-full"
+                  size="lg"
+                >
+                  Login (Have SAATHI-ID)
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
