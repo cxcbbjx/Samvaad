@@ -15,7 +15,7 @@ export default function Login() {
   const { login, isLoading } = useAuth();
   
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '', // SAATHI-ID for students, email for psychologists
     password: ''
   });
   const [error, setError] = useState('');
