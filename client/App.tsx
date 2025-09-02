@@ -10,6 +10,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { StudentProtectedRoute, PsychologistProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import StudentRegister from "./pages/StudentRegister";
 import StudentChat from "./pages/StudentChat";
 import StudentProfile from "./pages/StudentProfile";
 import PsychologistDashboard from "./pages/PsychologistDashboard";
