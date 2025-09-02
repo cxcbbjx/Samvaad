@@ -20,7 +20,7 @@ interface RegistrationData {
 }
 
 interface RegistrationResult {
-  saathiId: string;
+  samvaadId: string;
   tempPassword: string;
 }
 
@@ -43,8 +43,8 @@ export default function StudentRegister() {
     emergencyPhone: ''
   });
 
-  const generateSaathiId = (): string => {
-    // Generate unique SAATHI-ID format: STU + 6 random digits
+  const generateSamvaadId = (): string => {
+    // Generate unique SAMVAAD-ID format: STU + 6 random digits
     const randomNum = Math.floor(100000 + Math.random() * 900000);
     return `STU${randomNum}`;
   };
@@ -117,7 +117,7 @@ export default function StudentRegister() {
 
     try {
       // Check if email already exists
-      const existingStudents = JSON.parse(localStorage.getItem('saathi_students') || '[]');
+      const existingStudents = JSON.parse(localStorage.getItem('samvaad_students') || '[]');
       const emailExists = existingStudents.some((student: any) => 
         student.email.toLowerCase() === formData.email.toLowerCase()
       );
@@ -131,25 +131,25 @@ export default function StudentRegister() {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Generate SAATHI-ID and temporary password
-      const saathiId = generateSaathiId();
+      // Generate SAMVAAD-ID and temporary password
+      const samvaadId = generateSamvaadId();
       const tempPassword = generateTempPassword();
 
       // Create student record
       const studentRecord = {
         ...formData,
-        saathiId,
+        samvaadId,
         tempPassword,
         registrationDate: new Date().toISOString(),
         isActive: true
       };
 
       // Store in localStorage (in real app, this would be sent to backend)
-      const students = JSON.parse(localStorage.getItem('saathi_students') || '[]');
+      const students = JSON.parse(localStorage.getItem('samvaad_students') || '[]');
       students.push(studentRecord);
-      localStorage.setItem('saathi_students', JSON.stringify(students));
+      localStorage.setItem('samvaad_students', JSON.stringify(students));
 
-      setRegistrationResult({ saathiId, tempPassword });
+      setRegistrationResult({ samvaadId, tempPassword });
       setStep('success');
     } catch (error) {
       setError('Registration failed. Please try again.');
@@ -185,19 +185,19 @@ export default function StudentRegister() {
               </div>
               <CardTitle className="text-xl text-success">Registration Successful!</CardTitle>
               <CardDescription>
-                Your SAATHI account has been created. Save these credentials safely.
+                Your SAMVAAD account has been created. Save these credentials safely.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                  <Label className="text-sm font-medium text-primary">Your SAATHI-ID</Label>
+                  <Label className="text-sm font-medium text-primary">Your SAMVAAD-ID</Label>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-lg font-bold text-foreground">{registrationResult.saathiId}</span>
+                    <span className="text-lg font-bold text-foreground">{registrationResult.samvaadId}</span>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => copyToClipboard(registrationResult.saathiId, 'id')}
+                      onClick={() => copyToClipboard(registrationResult.samvaadId, 'id')}
                       className="h-8"
                     >
                       {copied.id ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
@@ -229,7 +229,7 @@ export default function StudentRegister() {
 
               <Alert>
                 <AlertDescription className="text-sm">
-                  <strong>Important:</strong> Save these credentials safely. You'll need your SAATHI-ID to login and access support services.
+                  <strong>Important:</strong> Save these credentials safely. You'll need your SAMVAAD-ID to login and access support services.
                 </AlertDescription>
               </Alert>
 
@@ -266,7 +266,7 @@ export default function StudentRegister() {
             Student Registration
           </h1>
           <p className="text-muted-foreground">
-            Register once to get your unique SAATHI-ID
+            Register once to get your unique SAMVAAD-ID
           </p>
         </div>
 
@@ -275,7 +275,7 @@ export default function StudentRegister() {
           <CardHeader>
             <CardTitle className="text-lg">Create Your Account</CardTitle>
             <CardDescription>
-              Fill in your details to register for SAATHI support services
+              Fill in your details to register for SAMVAAD support services
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -396,14 +396,14 @@ export default function StudentRegister() {
                     Creating Account...
                   </>
                 ) : (
-                  'Register & Get SAATHI-ID'
+                  'Register & Get SAMVAAD-ID'
                 )}
               </Button>
             </form>
 
             <div className="mt-4 text-center">
               <p className="text-sm text-muted-foreground">
-                Already have a SAATHI-ID?{' '}
+                Already have a SAMVAAD-ID?{' '}
                 <button
                   onClick={() => navigate('/login/student')}
                   className="text-primary hover:underline"
