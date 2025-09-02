@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import weaviate, { WeaviateClient, ApiKey } from 'weaviate-ts-client';
-import { pipeline, Pipeline } from '@xenova/transformers';
+// Lazy import transformers to avoid heavy native deps at startup
+let transformersPipeline: any = null;
 import { franc } from 'franc';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -32,7 +33,7 @@ interface RAGResult {
 class AIService {
   private openai: OpenAI;
   private weaviateClient: WeaviateClient;
-  private bertEncoder: Pipeline | null = null;
+  private bertEncoder: any | null = null;
   private languageDetector: any;
   private conversationContexts: Map<string, ConversationContext> = new Map();
 
@@ -54,8 +55,15 @@ class AIService {
 
   private async initializeServices() {
     try {
-      // Initialize BERT encoder for semantic similarity
-      this.bertEncoder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      // Initialize BERT encoder for semantic similarity (lazy import)
+      try {
+        const transformers = await import('@xenova/transformers');
+        transformersPipeline = transformers.pipeline;
+        this.bertEncoder = await transformersPipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      } catch (err) {
+        console.warn('BERT embeddings unavailable, falling back to basic embeddings.', err);
+        this.bertEncoder = null;
+      }
       
       // Setup Weaviate schema if not exists
       await this.setupWeaviateSchema();
@@ -201,10 +209,15 @@ class AIService {
   private async generateEmbedding(text: string): Promise<number[]> {
     try {
       if (!this.bertEncoder) {
-        throw new Error('BERT encoder not initialized');
+        // Fallback: simple hash-based embedding to keep system functional in prototype
+        const vec = new Array(384).fill(0);
+        for (let i = 0; i < text.length; i++) {
+          vec[i % 384] += text.charCodeAt(i) / 255;
+        }
+        return vec.map(v => v / (text.length || 1));
       }
 
-      const output = await this.bertEncoder(text, { pooling: 'mean', normalize: true });
+      const output = await (this.bertEncoder as any)(text, { pooling: 'mean', normalize: true });
       return Array.from(output.data);
     } catch (error) {
       console.error('Error generating embedding:', error);
