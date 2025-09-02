@@ -31,10 +31,7 @@ class ChatService {
 
   constructor() {
     // Use different API URLs based on environment
-    this.baseURL = import.meta.env.VITE_API_URL || 
-                   (window.location.hostname === 'localhost' 
-                     ? 'http://localhost:3000' 
-                     : '/.netlify/functions');
+    this.baseURL = import.meta.env.VITE_API_URL || '';
   }
 
   async sendMessage(
