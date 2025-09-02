@@ -35,33 +35,68 @@ class ChatService {
   }
 
   async sendMessage(
-    message: string, 
-    userId: string, 
+    message: string,
+    userId: string,
     userProfile?: UserProfile
   ): Promise<ChatResponse> {
-    try {
-      const response = await fetch(`${this.baseURL}/api/chat`, {
+    const endpoint = `${this.baseURL}/api/chat`;
+    const payload = JSON.stringify({
+      message,
+      userId,
+      conversationId: this.conversationId,
+      userProfile
+    });
+
+    const makeRequest = async (url: string): Promise<Response> => {
+      return fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          message,
-          userId,
-          conversationId: this.conversationId,
-          userProfile
-        }),
+        body: payload,
+        credentials: 'same-origin',
+        cache: 'no-store',
+        redirect: 'manual'
       });
+    };
 
-      const data = await response.json();
+    try {
+      let response = await makeRequest(endpoint);
 
-      if (data.success && data.data.conversationId) {
+      // Handle potential redirects explicitly to avoid body stream reuse
+      if ([301, 302, 307, 308].includes(response.status)) {
+        const location = response.headers.get('location');
+        if (location) {
+          const nextUrl = new URL(location, window.location.origin).toString();
+          response = await fetch(nextUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: payload, // re-send fresh payload string
+            credentials: 'same-origin',
+            cache: 'no-store'
+          });
+        }
+      }
+
+      // Parse JSON safely
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (e) {
+        const text = await response.text();
+        data = (() => { try { return JSON.parse(text); } catch { return { success: false, error: text }; } })();
+      }
+
+      if (data?.success && data?.data?.conversationId) {
         this.conversationId = data.data.conversationId;
-        // Store conversation ID in localStorage for persistence
         localStorage.setItem('samvaad_conversation_id', this.conversationId);
       }
 
-      return data;
+      return data as ChatResponse;
     } catch (error) {
       console.error('Chat service error:', error);
       return {
