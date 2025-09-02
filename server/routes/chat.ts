@@ -19,7 +19,7 @@ async function ensureAIService() {
 const ChatMessageSchema = z.object({
   message: z.string().min(1, "Message cannot be empty"),
   userId: z.string().min(1, "User ID is required"),
-  conversationId: z.string().optional(),
+  conversationId: z.string().nullable().optional(),
   userProfile: z.object({
     name: z.string().optional(),
     preferredLanguage: z.string().optional(),
