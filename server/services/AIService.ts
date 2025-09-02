@@ -1,7 +1,5 @@
 import OpenAI from 'openai';
 import weaviate, { WeaviateClient, ApiKey } from 'weaviate-ts-client';
-// Lazy import transformers to avoid heavy native deps at startup
-let transformersPipeline: any = null;
 import { franc } from 'franc';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,17 +28,21 @@ interface RAGResult {
   category: string;
 }
 
+// Lazy import transformers to avoid heavy native deps at startup
+let transformersPipeline: any = null;
+
 class AIService {
   private openai: OpenAI;
   private weaviateClient: WeaviateClient;
   private bertEncoder: any | null = null;
   private languageDetector: any;
   private conversationContexts: Map<string, ConversationContext> = new Map();
+  private knowledgeBase: Array<{content: string, category: string, language: string, tags: string[], source?: string}> = [];
 
   constructor() {
     // Initialize OpenAI
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: process.env.OPENAI_API_KEY || 'sk-dummy-key',
     });
 
     // Initialize Weaviate (using local instance for prototype)
@@ -60,8 +62,9 @@ class AIService {
         const transformers = await import('@xenova/transformers');
         transformersPipeline = transformers.pipeline;
         this.bertEncoder = await transformersPipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+        console.log('✅ BERT encoder initialized');
       } catch (err) {
-        console.warn('BERT embeddings unavailable, falling back to basic embeddings.', err);
+        console.warn('⚠️ BERT embeddings unavailable, falling back to basic embeddings.', err);
         this.bertEncoder = null;
       }
       
@@ -71,9 +74,9 @@ class AIService {
       // Load mental health knowledge base
       await this.loadKnowledgeBase();
       
-      console.log('AI Services initialized successfully');
+      console.log('🤖 AI Services initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize AI services:', error);
+      console.error('❌ Failed to initialize AI services:', error);
     }
   }
 
@@ -119,10 +122,10 @@ class AIService {
         };
 
         await this.weaviateClient.schema.classCreator().withClass(classObj).do();
-        console.log('Weaviate schema created successfully');
+        console.log('✅ Weaviate schema created successfully');
       }
     } catch (error) {
-      console.error('Error setting up Weaviate schema:', error);
+      console.warn('⚠️ Weaviate schema setup failed:', error);
     }
   }
 
@@ -151,7 +154,7 @@ class AIService {
         source: "educational_psychology"
       },
       {
-        content: "छात्रों के लिए समय प्रबंधन: पोमोडोरो तकनीक का उपयोग करें - 25 मिनट पढ़ें, फिर 5 मिनट का ब्रेक लें। यह ध्यान बनाए रखने में मदद करता है।",
+        content: "छात्रों के लिए समय प्रबंधन: पोमोडोरो तकनीक का उपयोग करें - 25 मिनट पढ़ें, फिर 5 मिनट का ब्रेक लें। यह ध्यान बनाए रखने में मदद कर���ा है।",
         category: "academic_support",
         language: "hi", 
         tags: ["समय_प्रबंधन", "अध्ययन", "उत्पादकता"],
@@ -192,17 +195,25 @@ class AIService {
         // Generate embedding using BERT
         const embedding = await this.generateEmbedding(item.content);
         
-        await this.weaviateClient.data
-          .creator()
-          .withClassName('KnowledgeBase')
-          .withProperties(item)
-          .withVector(embedding)
-          .do();
+        try {
+          await this.weaviateClient.data
+            .creator()
+            .withClassName('KnowledgeBase')
+            .withProperties(item)
+            .withVector(embedding)
+            .do();
+        } catch (weaviateError) {
+          // Store in memory if Weaviate is unavailable
+          this.knowledgeBase.push(item);
+        }
       }
       
-      console.log('Knowledge base loaded successfully');
+      console.log(`📚 Knowledge base loaded: ${knowledgeItems.length - this.knowledgeBase.length} in Weaviate, ${this.knowledgeBase.length} in memory`);
     } catch (error) {
-      console.error('Error loading knowledge base:', error);
+      console.error('❌ Error loading knowledge base:', error);
+      // Store all in memory as fallback
+      this.knowledgeBase = knowledgeItems;
+      console.log(`📚 Knowledge base loaded in memory: ${this.knowledgeBase.length} items`);
     }
   }
 
@@ -256,28 +267,56 @@ class AIService {
     try {
       const queryEmbedding = await this.generateEmbedding(query);
       
-      const result = await this.weaviateClient.graphql
-        .get()
-        .withClassName('KnowledgeBase')
-        .withFields('content category language tags source')
-        .withNearVector({ vector: queryEmbedding })
-        .withLimit(5)
-        .do();
+      // Try Weaviate first
+      try {
+        const result = await this.weaviateClient.graphql
+          .get()
+          .withClassName('KnowledgeBase')
+          .withFields('content category language tags source')
+          .withNearVector({ vector: queryEmbedding })
+          .withLimit(5)
+          .do();
 
-      const ragResults: RAGResult[] = [];
-      
-      if (result.data?.Get?.KnowledgeBase) {
-        for (const item of result.data.Get.KnowledgeBase) {
-          ragResults.push({
-            content: item.content,
-            relevanceScore: 0.8, // Placeholder - Weaviate provides distance
-            source: item.source,
-            category: item.category
-          });
+        const ragResults: RAGResult[] = [];
+        
+        if (result.data?.Get?.KnowledgeBase) {
+          for (const item of result.data.Get.KnowledgeBase) {
+            ragResults.push({
+              content: item.content,
+              relevanceScore: 0.8,
+              source: item.source || 'knowledge_base',
+              category: item.category
+            });
+          }
+          console.log(`🔍 RAG search via Weaviate: ${ragResults.length} results`);
+          return ragResults;
         }
+      } catch (weaviateError) {
+        console.log('⚠️ Weaviate unavailable, using in-memory search');
       }
 
-      return ragResults;
+      // Fallback to in-memory semantic search
+      if (this.knowledgeBase.length > 0) {
+        const queryLower = query.toLowerCase();
+        const relevantItems = this.knowledgeBase
+          .filter(item => 
+            item.language === language || item.language === 'en' || 
+            item.content.toLowerCase().includes(queryLower) ||
+            item.tags.some(tag => queryLower.includes(tag.toLowerCase()))
+          )
+          .slice(0, 3)
+          .map(item => ({
+            content: item.content,
+            relevanceScore: 0.7,
+            source: 'memory_knowledge_base',
+            category: item.category
+          }));
+        
+        console.log(`🔍 RAG search via memory: ${relevantItems.length} results`);
+        return relevantItems;
+      }
+
+      return [];
     } catch (error) {
       console.error('RAG search error:', error);
       return [];
@@ -330,6 +369,53 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
     return 'neutral';
   }
 
+  private generatePatternBasedResponse(message: string, ragResults: RAGResult[], language: string): string {
+    const lowerMessage = message.toLowerCase();
+    
+    // Use RAG results if available
+    if (ragResults.length > 0) {
+      const relevantAdvice = ragResults[0].content;
+      
+      if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety')) {
+        return `I understand you're feeling anxious. That's completely normal and many students experience this. Here's something that might help: ${relevantAdvice}. How are you feeling right now?`;
+      }
+      
+      if (lowerMessage.includes('exam') || lowerMessage.includes('test')) {
+        return `Exam stress can be really overwhelming. You're not alone in feeling this way. Here's some advice: ${relevantAdvice}. What's been the most challenging part for you?`;
+      }
+      
+      if (lowerMessage.includes('stress') || lowerMessage.includes('overwhelmed')) {
+        return `I hear that you're feeling stressed. That takes courage to share. Here's something that might help: ${relevantAdvice}. Would you like to talk more about what's causing the most stress?`;
+      }
+    }
+
+    // Emergency detection
+    const emergencyKeywords = ['suicide', 'kill myself', 'end it all', 'self harm', 'hurt myself', 'want to die'];
+    if (emergencyKeywords.some(keyword => lowerMessage.includes(keyword))) {
+      return "I'm really concerned about what you're sharing with me. You matter so much, and I want you to get immediate support. Please reach out to a crisis counselor right now - call 988 or text HOME to 741741. You don't have to face this alone.";
+    }
+
+    // Pattern-based responses with knowledge integration
+    if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety')) {
+      return "Anxiety can feel so overwhelming, and it's completely understandable that you're struggling with it. You're not alone in this - so many students experience anxiety. One technique that helps many people is the 4-7-8 breathing method: breathe in for 4 counts, hold for 7, then exhale for 8. Would you like to try it together?";
+    }
+
+    if (lowerMessage.includes('lonely') || lowerMessage.includes('isolated')) {
+      return "Feeling lonely is really hard, especially when you're trying to manage everything else. It takes courage to reach out, and I'm glad you're here talking with me. You matter, and your feelings are completely valid. Sometimes joining study groups or campus activities can help build connections. What's been making you feel most isolated lately?";
+    }
+
+    if (lowerMessage.includes('exam') || lowerMessage.includes('test') || lowerMessage.includes('grade')) {
+      return "Academic pressure can be intense, and it sounds like you're really feeling the weight of it. Remember that your worth isn't determined by your grades - you're so much more than your academic performance. One helpful approach is the Pomodoro Technique: study for 25 minutes, then take a 5-minute break. What's feeling most overwhelming about your exams right now?";
+    }
+
+    if (lowerMessage.includes('sleep') || lowerMessage.includes('tired') || lowerMessage.includes('exhausted')) {
+      return "Not getting enough sleep can make everything feel so much harder. Your body and mind need that rest to function well. Try maintaining a consistent sleep schedule and avoiding screens before bed. Have you noticed anything specific that's been keeping you awake?";
+    }
+
+    // Default empathetic response
+    return "I hear you, and I want you to know that what you're feeling matters. Sometimes just having someone listen can make a difference. I'm here with you right now. Can you tell me a bit more about what's been on your mind lately?";
+  }
+
   public async generateResponse(
     userId: string,
     message: string,
@@ -344,6 +430,8 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
       const currentConversationId = conversationId || uuidv4();
       const language = this.detectLanguage(message);
       const sentiment = await this.analyzeSentiment(message);
+
+      console.log(`💬 Processing message: "${message.substring(0, 50)}..." | Language: ${language} | Sentiment: ${sentiment}`);
 
       // Get or create conversation context
       let context = this.conversationContexts.get(currentConversationId);
@@ -375,23 +463,37 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
         content: msg.content
       }));
 
-      // Generate response using GPT-4
+      // Generate response using GPT-4 
       const systemPrompt = this.buildSystemPrompt(ragResults, language, context.userProfile);
       
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...conversationHistory,
-          { role: 'user', content: message }
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1
-      });
+      let response: string;
+      
+      // Check if we have a valid OpenAI API key
+      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.startsWith('sk-dummy') || process.env.OPENAI_API_KEY.includes('placeholder')) {
+        console.log('⚠️ OpenAI API key not configured, using enhanced pattern matching');
+        response = this.generatePatternBasedResponse(message, ragResults, language);
+      } else {
+        try {
+          const completion = await this.openai.chat.completions.create({
+            model: 'gpt-4',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...conversationHistory,
+              { role: 'user', content: message }
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+            presence_penalty: 0.1,
+            frequency_penalty: 0.1
+          });
 
-      const response = completion.choices[0]?.message?.content || "I understand you're reaching out. Can you tell me more about how you're feeling?";
+          response = completion.choices[0]?.message?.content || "I understand you're reaching out. Can you tell me more about how you're feeling?";
+          console.log('✅ GPT-4 response generated successfully');
+        } catch (openaiError: any) {
+          console.error('❌ OpenAI API error:', openaiError.message);
+          response = this.generatePatternBasedResponse(message, ragResults, language);
+        }
+      }
 
       // Add assistant response to context
       context.messages.push({
@@ -408,6 +510,8 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
         context.userProfile.riskLevel = 'high';
       }
 
+      console.log(`✅ Response generated: "${response.substring(0, 50)}..."`);
+
       return {
         response,
         conversationId: currentConversationId,
@@ -416,7 +520,7 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
       };
 
     } catch (error) {
-      console.error('Error generating response:', error);
+      console.error('❌ Error generating response:', error);
       
       // Fallback response
       const language = this.detectLanguage(message);
