@@ -7,8 +7,7 @@ import {
   getConversationHistory,
   healthCheck,
   getConversationAnalytics,
-  handleEmergency,
-  initializeAIService
+  handleEmergency
 } from "./routes/chat";
 
 export function createServer() {
