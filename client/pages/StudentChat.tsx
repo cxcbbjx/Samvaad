@@ -57,7 +57,7 @@ export default function StudentChat() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (content?: string) => {
+  const handleSendMessage = async (content?: string) => {
     const messageContent = content || inputValue.trim();
     if (!messageContent) return;
 
@@ -72,17 +72,50 @@ export default function StudentChat() {
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      // Import the chat service dynamically
+      const { default: chatService } = await import("@/services/chatService");
+
+      // Send message to AI service
+      const response = await chatService.sendMessage(
+        messageContent,
+        user?.id || 'anonymous',
+        {
+          name: user?.name,
+          preferredLanguage: 'auto' // Let the AI detect the language
+        }
+      );
+
+      let botResponseContent;
+      if (response.success) {
+        botResponseContent = response.data.response;
+      } else {
+        // Fallback to enhanced local response
+        botResponseContent = chatService.getEnhancedResponse(messageContent);
+      }
+
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: getBotResponse(messageContent),
+        content: botResponseContent,
+        isUser: false,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+
+      // Fallback response
+      const botResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm here to listen and support you. Can you tell me more about what's on your mind?",
         isUser: false,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, botResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const getBotResponse = (userMessage: string): string => {
