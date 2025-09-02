@@ -28,18 +28,28 @@ export default function Login() {
     e.preventDefault();
     setError('');
 
-    if (!formData.email || !formData.password) {
+    if (!formData.identifier || !formData.password) {
       setError('Please fill in all fields');
       return;
     }
 
-    const success = await login(formData.email, formData.password, userRole);
-    
+    // Additional validation for student SAATHI-ID format
+    if (isStudent && !formData.identifier.match(/^STU\d{6}$/)) {
+      setError('Please enter a valid SAATHI-ID (format: STU123456)');
+      return;
+    }
+
+    const success = await login(formData.identifier, formData.password, userRole);
+
     if (success) {
       // Redirect based on role
       navigate(isStudent ? '/student' : '/psychologist');
     } else {
-      setError('Invalid email or password. Please try again.');
+      if (isStudent) {
+        setError('Invalid SAATHI-ID or password. Please check your credentials.');
+      } else {
+        setError('Invalid email or password. Please try again.');
+      }
     }
   };
 
