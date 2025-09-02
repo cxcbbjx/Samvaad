@@ -70,6 +70,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Check for stored authentication on mount
   useEffect(() => {
+    // Initialize demo student records if they don't exist
+    const existingStudents = localStorage.getItem('saathi_students');
+    if (!existingStudents) {
+      const demoStudents = [
+        {
+          name: 'Demo Student 1',
+          email: 'demo1@university.edu',
+          university: 'du',
+          studentId: 'DU2024001',
+          phone: '9876543210',
+          emergencyContact: 'Parent Name',
+          emergencyPhone: '9876543211',
+          saathiId: 'STU123456',
+          tempPassword: 'demo123',
+          registrationDate: new Date().toISOString(),
+          isActive: true
+        },
+        {
+          name: 'Demo Student 2',
+          email: 'demo2@university.edu',
+          university: 'jnu',
+          studentId: 'JNU2024002',
+          phone: '9876543212',
+          emergencyContact: 'Guardian Name',
+          emergencyPhone: '9876543213',
+          saathiId: 'STU789012',
+          tempPassword: 'demo456',
+          registrationDate: new Date().toISOString(),
+          isActive: true
+        }
+      ];
+      localStorage.setItem('saathi_students', JSON.stringify(demoStudents));
+    }
+
     const storedUser = localStorage.getItem('saathi_user');
     if (storedUser) {
       try {
