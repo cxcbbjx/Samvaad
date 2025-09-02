@@ -76,7 +76,7 @@ export default function Login() {
         { identifier: 'dr.johnson@saathi.com', password: 'admin123', label: 'Dr. Johnson' }
       ];
 
-  const fillDemo = (credentials: { email: string; password: string }) => {
+  const fillDemo = (credentials: { identifier: string; password: string }) => {
     setFormData(credentials);
     setError('');
   };
