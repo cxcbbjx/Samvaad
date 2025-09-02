@@ -54,9 +54,13 @@ export default function Login() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.name === 'identifier' && isStudent
+      ? e.target.value.toUpperCase()
+      : e.target.value;
+
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     }));
     // Clear error when user starts typing
     if (error) setError('');
