@@ -68,12 +68,12 @@ export default function Login() {
 
   const demoCredentials = isStudent
     ? [
-        { email: 'student@example.com', password: 'student123' },
-        { email: 'jane.student@university.edu', password: 'password123' }
+        { identifier: 'STU123456', password: 'demo123', label: 'Demo Student 1' },
+        { identifier: 'STU789012', password: 'demo456', label: 'Demo Student 2' }
       ]
     : [
-        { email: 'dr.smith@saathi.com', password: 'psychologist123' },
-        { email: 'dr.johnson@saathi.com', password: 'admin123' }
+        { identifier: 'dr.smith@saathi.com', password: 'psychologist123', label: 'Dr. Smith' },
+        { identifier: 'dr.johnson@saathi.com', password: 'admin123', label: 'Dr. Johnson' }
       ];
 
   const fillDemo = (credentials: { email: string; password: string }) => {
