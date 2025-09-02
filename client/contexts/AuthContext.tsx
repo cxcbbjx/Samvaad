@@ -83,22 +83,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
+  const login = async (identifier: string, password: string, role: UserRole): Promise<boolean> => {
     setIsLoading(true);
 
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const userCredentials = mockUsers[email.toLowerCase()];
-    
-    if (userCredentials && 
-        userCredentials.password === password && 
-        userCredentials.user.role === role) {
-      
-      setUser(userCredentials.user);
-      localStorage.setItem('saathi_user', JSON.stringify(userCredentials.user));
-      setIsLoading(false);
-      return true;
+    if (role === 'student') {
+      // For students, identifier is SAATHI-ID
+      const students = JSON.parse(localStorage.getItem('saathi_students') || '[]');
+      const student = students.find((s: any) =>
+        s.saathiId === identifier.toUpperCase() && s.tempPassword === password
+      );
+
+      if (student) {
+        const user: User = {
+          id: student.saathiId,
+          email: student.email,
+          role: 'student',
+          name: student.name
+        };
+
+        setUser(user);
+        localStorage.setItem('saathi_user', JSON.stringify(user));
+        setIsLoading(false);
+        return true;
+      }
+    } else if (role === 'psychologist') {
+      // For psychologists, identifier is email
+      const userCredentials = mockUsers[identifier.toLowerCase()];
+
+      if (userCredentials &&
+          userCredentials.password === password &&
+          userCredentials.user.role === role) {
+
+        setUser(userCredentials.user);
+        localStorage.setItem('saathi_user', JSON.stringify(userCredentials.user));
+        setIsLoading(false);
+        return true;
+      }
     }
 
     setIsLoading(false);
