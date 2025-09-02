@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessageCircle, ArrowLeft, Loader2, CheckCircle, Copy, User } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface RegistrationData {
@@ -159,14 +160,42 @@ export default function StudentRegister() {
   };
 
   const copyToClipboard = async (text: string, type: 'id' | 'password') => {
-    try {
-      await navigator.clipboard.writeText(text);
+    const markCopied = () => {
       setCopied(prev => ({ ...prev, [type]: true }));
-      setTimeout(() => {
-        setCopied(prev => ({ ...prev, [type]: false }));
-      }, 2000);
+      setTimeout(() => setCopied(prev => ({ ...prev, [type]: false })), 2000);
+      toast({ title: 'Copied to clipboard' });
+    };
+
+    // Prefer modern API in secure contexts
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        markCopied();
+        return;
+      } catch (e) {
+        // fall through to legacy method
+      }
+    }
+
+    // Fallback: use a temporary textarea + execCommand
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      if (successful) {
+        markCopied();
+        return;
+      }
+      throw new Error('execCommand failed');
     } catch (error) {
-      console.error('Failed to copy to clipboard');
+      toast({ title: 'Copy failed', description: 'Please copy manually.', variant: 'destructive' });
+      console.error('Failed to copy to clipboard', error);
     }
   };
 
