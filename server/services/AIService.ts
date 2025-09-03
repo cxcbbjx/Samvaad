@@ -57,16 +57,9 @@ class AIService {
 
   private async initializeServices() {
     try {
-      // Initialize BERT encoder for semantic similarity (lazy import)
-      try {
-        const transformers = await import('@xenova/transformers');
-        transformersPipeline = transformers.pipeline;
-        this.bertEncoder = await transformersPipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-        console.log('✅ BERT encoder initialized');
-      } catch (err) {
-        console.warn('⚠️ BERT embeddings unavailable, falling back to basic embeddings.', err);
-        this.bertEncoder = null;
-      }
+      // Skip BERT for now due to sharp module issues, use semantic keyword matching instead
+      console.log('ℹ️ Using semantic keyword matching instead of BERT embeddings');
+      this.bertEncoder = null;
       
       // Setup Weaviate schema if not exists
       await this.setupWeaviateSchema();
@@ -154,7 +147,7 @@ class AIService {
         source: "educational_psychology"
       },
       {
-        content: "छात्रों के लिए समय प्रबंधन: पोमोडोरो तकनीक का उपयोग करें - 25 मिनट पढ़ें, फिर 5 मिनट का ब्रेक लें। यह ध्यान बनाए रखने में मदद कर���ा है।",
+        content: "छात्रों के लिए समय प्रबंधन: पोमोडोरो तकनीक का उपयोग करें - 25 मिनट पढ़ें, फिर 5 मिनट का ब्रेक लें। यह ध्यान बनाए रखने में मदद करता है।",
         category: "academic_support",
         language: "hi", 
         tags: ["समय_प्रबंधन", "अध्ययन", "उत्पादकता"],
@@ -295,25 +288,60 @@ class AIService {
         console.log('⚠️ Weaviate unavailable, using in-memory search');
       }
 
-      // Fallback to in-memory semantic search
+      // Fallback to in-memory semantic search with improved keyword matching
       if (this.knowledgeBase.length > 0) {
         const queryLower = query.toLowerCase();
-        const relevantItems = this.knowledgeBase
-          .filter(item => 
-            item.language === language || item.language === 'en' || 
-            item.content.toLowerCase().includes(queryLower) ||
-            item.tags.some(tag => queryLower.includes(tag.toLowerCase()))
-          )
+
+        // Enhanced keyword matching with scoring
+        const scoredItems = this.knowledgeBase
+          .map(item => {
+            let score = 0;
+
+            // Language match bonus
+            if (item.language === language) score += 2;
+            else if (item.language === 'en') score += 1;
+
+            // Direct content match
+            if (item.content.toLowerCase().includes(queryLower)) score += 3;
+
+            // Tag matches
+            const matchingTags = item.tags.filter(tag =>
+              queryLower.includes(tag.toLowerCase()) ||
+              tag.toLowerCase().includes(queryLower)
+            );
+            score += matchingTags.length * 2;
+
+            // Category matches for common topics
+            const topicMatches = {
+              'anxiety': ['anxious', 'worried', 'panic', 'nervous'],
+              'exam_stress': ['exam', 'test', 'grade', 'study'],
+              'social_support': ['lonely', 'friends', 'social', 'isolated'],
+              'wellness': ['sleep', 'tired', 'exhausted'],
+              'crisis_intervention': ['suicide', 'harm', 'kill', 'die']
+            };
+
+            Object.entries(topicMatches).forEach(([category, keywords]) => {
+              if (item.category.includes(category)) {
+                keywords.forEach(keyword => {
+                  if (queryLower.includes(keyword)) score += 4;
+                });
+              }
+            });
+
+            return { ...item, score };
+          })
+          .filter(item => item.score > 0)
+          .sort((a, b) => b.score - a.score)
           .slice(0, 3)
           .map(item => ({
             content: item.content,
-            relevanceScore: 0.7,
-            source: 'memory_knowledge_base',
+            relevanceScore: Math.min(0.9, 0.5 + (item.score * 0.1)),
+            source: 'semantic_memory_search',
             category: item.category
           }));
-        
-        console.log(`🔍 RAG search via memory: ${relevantItems.length} results`);
-        return relevantItems;
+
+        console.log(`🔍 RAG search via semantic matching: ${scoredItems.length} results`);
+        return scoredItems;
       }
 
       return [];
@@ -371,22 +399,35 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
 
   private generatePatternBasedResponse(message: string, ragResults: RAGResult[], language: string): string {
     const lowerMessage = message.toLowerCase();
-    
-    // Use RAG results if available
+
+    // Use RAG results if available - this is our knowledge-enhanced response
     if (ragResults.length > 0) {
-      const relevantAdvice = ragResults[0].content;
-      
-      if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety')) {
-        return `I understand you're feeling anxious. That's completely normal and many students experience this. Here's something that might help: ${relevantAdvice}. How are you feeling right now?`;
+      const primaryAdvice = ragResults[0].content;
+      const category = ragResults[0].category;
+
+      // Contextual responses based on detected topics and RAG results
+      if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety') || lowerMessage.includes('worried')) {
+        return `I understand you're feeling anxious, and that's completely valid. Many students experience anxiety, especially during challenging times. Here's a technique that can help: ${primaryAdvice} Would you like to try this breathing exercise together, or tell me more about what's making you feel anxious?`;
       }
-      
-      if (lowerMessage.includes('exam') || lowerMessage.includes('test')) {
-        return `Exam stress can be really overwhelming. You're not alone in feeling this way. Here's some advice: ${relevantAdvice}. What's been the most challenging part for you?`;
+
+      if (lowerMessage.includes('exam') || lowerMessage.includes('test') || lowerMessage.includes('grade')) {
+        return `Exam stress is so common among students, and it sounds like you're really feeling the pressure. Remember, you're more than your grades. ${primaryAdvice} What specific part of your exams is causing you the most stress right now?`;
       }
-      
-      if (lowerMessage.includes('stress') || lowerMessage.includes('overwhelmed')) {
-        return `I hear that you're feeling stressed. That takes courage to share. Here's something that might help: ${relevantAdvice}. Would you like to talk more about what's causing the most stress?`;
+
+      if (lowerMessage.includes('lonely') || lowerMessage.includes('isolated') || lowerMessage.includes('friends') || lowerMessage.includes('social')) {
+        return `Feeling lonely can be really painful, especially when you're already dealing with other challenges. You're brave for reaching out. ${primaryAdvice} What's been the hardest part about feeling disconnected lately?`;
       }
+
+      if (lowerMessage.includes('sleep') || lowerMessage.includes('tired') || lowerMessage.includes('exhausted')) {
+        return `Sleep problems can make everything else feel so much harder. Your mind and body need that rest to cope with daily stress. ${primaryAdvice} Have you noticed any patterns with what might be affecting your sleep?`;
+      }
+
+      if (lowerMessage.includes('stress') || lowerMessage.includes('overwhelmed') || lowerMessage.includes('pressure')) {
+        return `I hear that you're feeling overwhelmed. That takes real courage to acknowledge and share. ${primaryAdvice} Would you like to talk about what's been weighing on you most heavily?`;
+      }
+
+      // General knowledge-enhanced response
+      return `I'm here to listen and support you. Based on what you're sharing, here's something that might be helpful: ${primaryAdvice} Can you tell me more about what you're experiencing right now?`;
     }
 
     // Emergency detection
@@ -475,7 +516,7 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
       } else {
         try {
           const completion = await this.openai.chat.completions.create({
-            model: 'gpt-4',
+            model: 'gpt-3.5-turbo',
             messages: [
               { role: 'system', content: systemPrompt },
               ...conversationHistory,
