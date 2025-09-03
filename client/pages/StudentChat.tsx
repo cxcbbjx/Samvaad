@@ -14,7 +14,15 @@ import {
   Phone,
   ArrowLeft,
   Clock,
-  LogOut
+  LogOut,
+  Wifi,
+  WifiOff,
+  Volume2,
+  VolumeX,
+  Settings,
+  MoreVertical,
+  Copy,
+  Share
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -47,7 +55,12 @@ export default function StudentChat() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showOptions, setShowOptions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,6 +69,67 @@ export default function StudentChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Prevent zoom on input focus (iOS Safari)
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      if ((e.target as HTMLElement).tagName === 'INPUT') {
+        document.querySelector('meta[name=viewport]')?.setAttribute(
+          'content',
+          'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'
+        );
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setTimeout(() => {
+        document.querySelector('meta[name=viewport]')?.setAttribute(
+          'content',
+          'width=device-width, initial-scale=1, user-scalable=no'
+        );
+      }, 500);
+    };
+
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
+  const playSound = (type: 'send' | 'receive') => {
+    if (!soundEnabled) return;
+
+    // Create audio context for notification sounds
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = type === 'send' ? 800 : 400;
+    gainNode.gain.value = 0.1;
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1);
+  };
 
   const handleSendMessage = async (content?: string) => {
     const messageContent = content || inputValue.trim();
@@ -71,6 +145,10 @@ export default function StudentChat() {
     setMessages(prev => [...prev, newMessage]);
     setInputValue("");
     setIsTyping(true);
+    playSound('send');
+
+    // Blur input to hide keyboard on mobile
+    inputRef.current?.blur();
 
     try {
       // Import the chat service dynamically
@@ -102,17 +180,21 @@ export default function StudentChat() {
       };
 
       setMessages(prev => [...prev, botResponse]);
+      playSound('receive');
     } catch (error) {
       console.error('Error sending message:', error);
 
       // Fallback response
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm here to listen and support you. Can you tell me more about what's on your mind?",
+        content: isOnline
+          ? "I'm here to listen and support you. Can you tell me more about what's on your mind?"
+          : "I'm here for you even offline. While I can't process this message right now, I'll respond as soon as you're back online. Your message is important.",
         isUser: false,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, botResponse]);
+      playSound('receive');
     } finally {
       setIsTyping(false);
     }
@@ -138,6 +220,30 @@ export default function StudentChat() {
 
   const handleQuickOption = (option: string) => {
     handleSendMessage(option);
+    setShowOptions(false);
+  };
+
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+    // Show toast or feedback
+  };
+
+  const shareMessage = (content: string) => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'SAMVAAD Conversation',
+        text: content,
+      });
+    } else {
+      copyMessage(content);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   const handleLogout = () => {
@@ -154,62 +260,122 @@ export default function StudentChat() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-accent/10 to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-accent/10 to-primary/5 flex flex-col">
       {/* Header */}
-      <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+      <div className="bg-card/95 backdrop-blur-md border-b border-border/50 sticky top-0 z-10 safe-area-inset-top">
+        <div className="px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/home')}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground p-2 sm:px-3"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+                <ArrowLeft className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Back</span>
               </Button>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-2 sm:gap-3 flex-1">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
-                <div>
-                  <h1 className="font-semibold text-foreground">SAMVAAD Bot</h1>
-                  <p className="text-xs text-success flex items-center gap-1">
-                    <span className="w-2 h-2 bg-success rounded-full"></span>
-                    Always here for you
+                <div className="flex-1 min-w-0">
+                  <h1 className="font-semibold text-foreground text-sm sm:text-base truncate">SAMVAAD</h1>
+                  <p className="text-xs flex items-center gap-1">
+                    {isOnline ? (
+                      <>
+                        <Wifi className="w-3 h-3 text-success" />
+                        <span className="text-success">Online</span>
+                      </>
+                    ) : (
+                      <>
+                        <WifiOff className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-muted-foreground">Offline</span>
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={() => navigate('/student/profile')}
-                className="text-muted-foreground"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="text-muted-foreground p-2"
+                title={soundEnabled ? 'Disable sounds' : 'Enable sounds'}
               >
-                <User className="w-4 h-4 mr-2" />
-                Profile
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-destructive hover:border-destructive/50"
+                onClick={() => setShowOptions(!showOptions)}
+                className="text-muted-foreground p-2 sm:hidden"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                <MoreVertical className="w-4 h-4" />
               </Button>
+              <div className="hidden sm:flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/student/profile')}
+                  className="text-muted-foreground"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-muted-foreground hover:text-destructive hover:border-destructive/50"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Mobile Options Menu */}
+      {showOptions && (
+        <div className="sm:hidden bg-card border-b border-border/50 px-4 py-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigate('/student/profile');
+                setShowOptions(false);
+              }}
+              className="text-muted-foreground flex-1"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                handleLogout();
+                setShowOptions(false);
+              }}
+              className="text-muted-foreground hover:text-destructive hover:border-destructive/50 flex-1"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Chat Area */}
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Quick Options */}
-        <div className="mb-6">
+        <div className="px-4 py-3 sm:py-6 border-b border-border/30">
           <p className="text-sm text-muted-foreground mb-3">Quick topics to get started:</p>
           <div className="flex flex-wrap gap-2">
             {quickOptions.map((option) => (
@@ -217,123 +383,165 @@ export default function StudentChat() {
                 key={option.label}
                 variant="outline"
                 className={cn(
-                  "cursor-pointer hover:bg-opacity-20 transition-all duration-200 px-3 py-2",
+                  "cursor-pointer hover:bg-opacity-20 transition-all duration-200 px-3 py-2 touch-manipulation",
                   option.color
                 )}
                 onClick={() => handleQuickOption(`I need help with ${option.label.toLowerCase()}`)}
               >
                 <option.icon className="w-3 h-3 mr-1" />
-                {option.label}
+                <span className="text-xs sm:text-sm">{option.label}</span>
               </Badge>
             ))}
           </div>
         </div>
 
         {/* Messages */}
-        <Card className="mb-6 border-border/50 shadow-sm">
-          <CardContent className="p-6">
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex gap-3 max-w-[80%]",
-                    message.isUser ? "ml-auto flex-row-reverse" : ""
+        <div className="flex-1 overflow-hidden">
+          <div
+            ref={chatContainerRef}
+            className="h-full overflow-y-auto px-4 py-3 space-y-4 scroll-smooth"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          >
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[80%] group",
+                  message.isUser ? "ml-auto flex-row-reverse" : ""
+                )}
+              >
+                <div className={cn(
+                  "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0",
+                  message.isUser
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground border border-border"
+                )}>
+                  {message.isUser ? (
+                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                  ) : (
+                    <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
                   )}
-                >
+                </div>
+                <div className="flex-1 min-w-0">
                   <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                    message.isUser 
-                      ? "bg-chat-user text-chat-user-foreground" 
-                      : "bg-chat-bot text-chat-bot-foreground border border-border"
-                  )}>
-                    {message.isUser ? (
-                      <User className="w-4 h-4" />
-                    ) : (
-                      <Bot className="w-4 h-4" />
-                    )}
-                  </div>
-                  <div className={cn(
-                    "rounded-2xl px-4 py-3 shadow-sm",
+                    "rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-sm relative",
                     message.isUser
-                      ? "bg-chat-user text-chat-user-foreground rounded-tr-md"
-                      : "bg-chat-bot text-chat-bot-foreground border border-border rounded-tl-md"
+                      ? "bg-primary text-primary-foreground rounded-tr-md"
+                      : "bg-card text-card-foreground border border-border rounded-tl-md"
                   )}>
-                    <p className="text-sm leading-relaxed">{message.content}</p>
+                    <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
                     <div className={cn(
-                      "flex items-center gap-1 mt-2 text-xs opacity-70",
-                      message.isUser ? "justify-end" : "justify-start"
+                      "flex items-center justify-between mt-2 text-xs opacity-70",
+                      message.isUser ? "flex-row-reverse" : ""
                     )}>
-                      <Clock className="w-3 h-3" />
-                      {formatTime(message.timestamp)}
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatTime(message.timestamp)}
+                      </div>
+                      {!message.isUser && (
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyMessage(message.content)}
+                            className="h-6 w-6 p-0 hover:bg-muted/50"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                          {navigator.share && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => shareMessage(message.content)}
+                              className="h-6 w-6 p-0 hover:bg-muted/50"
+                            >
+                              <Share className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
               
-              {isTyping && (
-                <div className="flex gap-3 max-w-[80%]">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-chat-bot text-chat-bot-foreground border border-border">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <div className="bg-chat-bot text-chat-bot-foreground border border-border rounded-2xl rounded-tl-md px-4 py-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
+            {isTyping && (
+              <div className="flex gap-2 sm:gap-3 max-w-[85%] sm:max-w-[80%]">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-muted text-muted-foreground border border-border">
+                  <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
+                </div>
+                <div className="bg-card text-card-foreground border border-border rounded-2xl rounded-tl-md px-3 py-2 sm:px-4 sm:py-3">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
 
         {/* Input Area */}
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex gap-3">
+        <div className="border-t border-border/50 bg-card/95 backdrop-blur-sm" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="p-3 sm:p-4">
+            {!isOnline && (
+              <div className="mb-3 p-2 bg-warning/10 border border-warning/20 rounded-lg">
+                <p className="text-xs text-warning flex items-center gap-2">
+                  <WifiOff className="w-3 h-3" />
+                  You're offline. Messages will be sent when connection is restored.
+                </p>
+              </div>
+            )}
+            <div className="flex gap-2 sm:gap-3">
               <div className="flex-1 flex gap-2">
                 <Input
+                  ref={inputRef}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Share what's on your mind..."
-                  className="border-border/50 focus:border-primary/50"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  className="border-border/50 focus:border-primary/50 text-base"
+                  onKeyPress={handleKeyPress}
+                  disabled={isTyping}
+                  style={{ fontSize: '16px' }} // Prevent zoom on iOS
                 />
                 <Button
                   variant="outline"
                   size="icon"
-                  className="flex-shrink-0 border-border/50 hover:bg-muted/50"
+                  className="flex-shrink-0 border-border/50 hover:bg-muted/50 touch-manipulation"
                   title="Voice input"
+                  disabled
                 >
                   <Mic className="w-4 h-4" />
                 </Button>
               </div>
               <Button
                 onClick={() => handleSendMessage()}
-                disabled={!inputValue.trim()}
-                className="bg-primary hover:bg-primary/90"
+                disabled={!inputValue.trim() || isTyping}
+                className="bg-primary hover:bg-primary/90 touch-manipulation px-3 sm:px-4"
+                size="icon"
               >
                 <Send className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Your conversations are private and confidential. Press Enter to send.
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Your conversations are private and confidential
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Floating Help Button */}
-      <div className="fixed bottom-6 right-6">
+      <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-20">
         <Button
           size="lg"
-          className="rounded-full w-14 h-14 bg-destructive hover:bg-destructive/90 shadow-lg"
+          className="rounded-full w-12 h-12 sm:w-14 sm:h-14 bg-destructive hover:bg-destructive/90 shadow-lg touch-manipulation"
           title="Emergency Support"
+          onClick={() => window.open('tel:988', '_self')}
         >
-          <Phone className="w-6 h-6" />
+          <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
         </Button>
       </div>
     </div>
