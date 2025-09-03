@@ -2,13 +2,154 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello world project</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>SAMVAAD - Mental Health Support</title>
+
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="SAMVAAD - Mental Health Support">
+    <meta name="description" content="AI-powered mental health support platform for students with multilingual conversations and professional guidance.">
+    <meta name="keywords" content="mental health, student support, AI chatbot, counseling, psychology, multilingual">
+    <meta name="author" content="SAMVAAD Team">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://samvaad.app/">
+    <meta property="og:title" content="SAMVAAD - Mental Health Support">
+    <meta property="og:description" content="AI-powered mental health support platform for students with multilingual conversations and professional guidance.">
+    <meta property="og:image" content="/icons/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://samvaad.app/">
+    <meta property="twitter:title" content="SAMVAAD - Mental Health Support">
+    <meta property="twitter:description" content="AI-powered mental health support platform for students with multilingual conversations and professional guidance.">
+    <meta property="twitter:image" content="/icons/twitter-image.png">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SAMVAAD">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167x167.png">
+
+    <!-- Splash Screens for iOS -->
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1242-2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-828-1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1242-2208.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+
+    <!-- Performance optimization -->
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <link rel="dns-prefetch" href="//api.openai.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
   </head>
 
   <body>
     <div id="root"></div>
 
+    <!-- Install App Banner -->
+    <div id="install-banner" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #3b82f6; color: white; padding: 12px; text-align: center; z-index: 1000;">
+      <div style="display: flex; align-items: center; justify-content: space-between; max-width: 400px; margin: 0 auto;">
+        <span style="font-size: 14px;">Install SAMVAAD for quick access</span>
+        <div>
+          <button id="install-button" style="background: white; color: #3b82f6; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; margin-right: 8px; cursor: pointer;">Install</button>
+          <button id="dismiss-button" style="background: transparent; color: white; border: 1px solid white; padding: 8px 12px; border-radius: 6px; cursor: pointer;">✕</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/client/App.tsx"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      const installBanner = document.getElementById('install-banner');
+      const installButton = document.getElementById('install-button');
+      const dismissButton = document.getElementById('dismiss-button');
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Show install banner if not dismissed before
+        if (!localStorage.getItem('pwa-dismissed')) {
+          installBanner.style.display = 'block';
+        }
+      });
+
+      installButton.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to the install prompt: ${outcome}`);
+          deferredPrompt = null;
+          installBanner.style.display = 'none';
+        }
+      });
+
+      dismissButton.addEventListener('click', () => {
+        installBanner.style.display = 'none';
+        localStorage.setItem('pwa-dismissed', 'true');
+      });
+
+      // Track install
+      window.addEventListener('appinstalled', (evt) => {
+        console.log('SAMVAAD was installed');
+        installBanner.style.display = 'none';
+      });
+
+      // Handle offline status
+      window.addEventListener('online', () => {
+        console.log('Back online');
+        document.body.classList.remove('offline');
+      });
+
+      window.addEventListener('offline', () => {
+        console.log('Gone offline');
+        document.body.classList.add('offline');
+      });
+    </script>
   </body>
 </html>
