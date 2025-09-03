@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import {
   MessageCircle,
   BarChart3,
@@ -24,11 +25,41 @@ import {
   Activity,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Shield,
+  Zap,
+  Target,
+  CheckCircle2,
+  ThumbsUp,
+  ThumbsDown,
+  Meh,
+  Download,
+  RefreshCw,
+  Eye,
+  Globe,
+  Lightbulb,
+  FileText,
+  LineChart
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  LineChart as RechartsLineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart as RechartsBarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area
+} from "recharts";
 
 type TabType = "live-chats" | "analytics" | "student-profiles";
 
@@ -91,7 +122,7 @@ const mockStudentProfiles: StudentProfile[] = [
   },
   {
     id: "s2",
-    name: "Anonymous Student #2", 
+    name: "Anonymous Student #2",
     totalSessions: 3,
     lastSession: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     riskLevel: "medium",
@@ -100,12 +131,68 @@ const mockStudentProfiles: StudentProfile[] = [
   }
 ];
 
+// Mock data for analytics
+const weeklyData = [
+  { day: 'Mon', sessions: 24, positive: 18, neutral: 4, negative: 2 },
+  { day: 'Tue', sessions: 31, positive: 22, neutral: 6, negative: 3 },
+  { day: 'Wed', sessions: 28, positive: 20, neutral: 5, negative: 3 },
+  { day: 'Thu', sessions: 35, positive: 25, neutral: 7, negative: 3 },
+  { day: 'Fri', sessions: 42, positive: 30, neutral: 8, negative: 4 },
+  { day: 'Sat', sessions: 18, positive: 14, neutral: 3, negative: 1 },
+  { day: 'Sun', sessions: 15, positive: 12, neutral: 2, negative: 1 }
+];
+
+const topicData = [
+  { name: 'Exam Stress', value: 35, color: '#ef4444' },
+  { name: 'Academic Pressure', value: 28, color: '#f97316' },
+  { name: 'Social Anxiety', value: 22, color: '#eab308' },
+  { name: 'Time Management', value: 15, color: '#22c55e' },
+  { name: 'Sleep Issues', value: 12, color: '#3b82f6' },
+  { name: 'Depression', value: 8, color: '#8b5cf6' }
+];
+
+const performanceMetrics = [
+  { hour: '9AM', responseTime: 2.1, satisfaction: 4.2 },
+  { hour: '10AM', responseTime: 1.8, satisfaction: 4.5 },
+  { hour: '11AM', responseTime: 2.3, satisfaction: 4.1 },
+  { hour: '12PM', responseTime: 2.8, satisfaction: 3.9 },
+  { hour: '1PM', responseTime: 3.2, satisfaction: 3.7 },
+  { hour: '2PM', responseTime: 2.5, satisfaction: 4.3 },
+  { hour: '3PM', responseTime: 1.9, satisfaction: 4.6 },
+  { hour: '4PM', responseTime: 2.1, satisfaction: 4.4 },
+  { hour: '5PM', responseTime: 2.7, satisfaction: 4.0 }
+];
+
+const crisisInterventions = [
+  { date: '2024-01-15', count: 2, resolved: 2, escalated: 0 },
+  { date: '2024-01-16', count: 1, resolved: 1, escalated: 0 },
+  { date: '2024-01-17', count: 3, resolved: 2, escalated: 1 },
+  { date: '2024-01-18', count: 0, resolved: 0, escalated: 0 },
+  { date: '2024-01-19', count: 1, resolved: 1, escalated: 0 },
+  { date: '2024-01-20', count: 2, resolved: 2, escalated: 0 },
+  { date: '2024-01-21', count: 1, resolved: 1, escalated: 0 }
+];
+
 export default function PsychologistDashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>("live-chats");
+  const [activeTab, setActiveTab] = useState<TabType>("analytics");
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsRefreshing(false);
+  };
 
   const handleLogout = () => {
     logout();
@@ -230,114 +317,372 @@ export default function PsychologistDashboard() {
 
   const renderAnalytics = () => (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">Analytics Dashboard</h2>
-      
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-border/50">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Analytics Dashboard</h2>
+          <p className="text-sm text-muted-foreground">
+            Real-time insights updated {currentTime.toLocaleTimeString()}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
+            Refresh
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card className="border-border/50 hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
-            <CardTitle className="text-xs lg:text-sm text-muted-foreground">Total Sessions Today</CardTitle>
+            <CardTitle className="text-xs text-muted-foreground">Sessions Today</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
-              <span className="text-xl lg:text-2xl font-bold">12</span>
+              <MessageCircle className="w-4 h-4 text-primary" />
+              <span className="text-xl font-bold">147</span>
+            </div>
+            <p className="text-xs text-success mt-1">↑ 12% vs yesterday</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xs text-muted-foreground">Avg Response</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-success" />
+              <span className="text-xl font-bold">2.3</span>
+              <span className="text-xs text-muted-foreground">sec</span>
+            </div>
+            <p className="text-xs text-success mt-1">↓ 0.5s improved</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xs text-muted-foreground">Crisis Alerts</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <span className="text-xl font-bold">7</span>
+            </div>
+            <p className="text-xs text-destructive mt-1">↑ 2 vs yesterday</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xs text-muted-foreground">Resolution Rate</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-success" />
+              <span className="text-xl font-bold">94%</span>
+            </div>
+            <p className="text-xs text-success mt-1">↑ 3% improvement</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xs text-muted-foreground">User Satisfaction</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2">
+              <ThumbsUp className="w-4 h-4 text-success" />
+              <span className="text-xl font-bold">4.7</span>
+              <span className="text-xs text-muted-foreground">/5</span>
+            </div>
+            <p className="text-xs text-success mt-1">↑ 0.2 rating increase</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xs text-muted-foreground">Active Students</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary" />
+              <span className="text-xl font-bold">1,247</span>
+            </div>
+            <p className="text-xs text-primary mt-1">↑ 45 new today</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Row 1 */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card className="border-border/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LineChart className="w-5 h-5" />
+              Weekly Session Trends
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={weeklyData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis dataKey="day" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Area type="monotone" dataKey="sessions" stroke="hsl(var(--primary))" fill="hsl(var(--primary)/.1)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-border/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xs lg:text-sm text-muted-foreground">Avg Session Time</CardTitle>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Top Discussion Topics
+            </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-success" />
-              <span className="text-xl lg:text-2xl font-bold">8.5</span>
-              <span className="text-xs lg:text-sm text-muted-foreground">min</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xs lg:text-sm text-muted-foreground">High Priority</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 lg:w-5 lg:h-5 text-destructive" />
-              <span className="text-xl lg:text-2xl font-bold">3</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xs lg:text-sm text-muted-foreground">Active Students</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 lg:w-5 lg:h-5 text-warning" />
-              <span className="text-xl lg:text-2xl font-bold">24</span>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={topicData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {topicData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Charts Row 2 */}
       <div className="grid lg:grid-cols-2 gap-6">
         <Card className="border-border/50">
           <CardHeader>
-            <CardTitle>Common Topics</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Sentiment Analysis Trends
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {[
-                { topic: "Exam Stress", count: 15, color: "bg-destructive/10 text-destructive" },
-                { topic: "Academic Pressure", count: 12, color: "bg-warning/10 text-warning" },
-                { topic: "Time Management", count: 8, color: "bg-primary/10 text-primary" },
-                { topic: "Social Anxiety", count: 6, color: "bg-success/10 text-success" }
-              ].map(item => (
-                <div key={item.topic} className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{item.topic}</span>
-                  <Badge variant="outline" className={item.color}>
-                    {item.count}
-                  </Badge>
-                </div>
-              ))}
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsLineChart data={weeklyData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis dataKey="day" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Line type="monotone" dataKey="positive" stroke="#22c55e" strokeWidth={2} name="Positive" />
+                  <Line type="monotone" dataKey="neutral" stroke="#64748b" strokeWidth={2} name="Neutral" />
+                  <Line type="monotone" dataKey="negative" stroke="#ef4444" strokeWidth={2} name="Negative" />
+                </RechartsLineChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-border/50">
           <CardHeader>
-            <CardTitle>Sentiment Trends</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              Performance Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsBarChart data={performanceMetrics}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis dataKey="hour" className="text-xs" />
+                  <YAxis yAxisId="left" className="text-xs" />
+                  <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Bar yAxisId="left" dataKey="responseTime" fill="hsl(var(--primary))" name="Response Time (s)" />
+                  <Line yAxisId="right" type="monotone" dataKey="satisfaction" stroke="#22c55e" strokeWidth={2} name="Satisfaction" />
+                </RechartsBarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Crisis Intervention Tracking */}
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-destructive" />
+            Crisis Intervention Dashboard
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid lg:grid-cols-4 gap-4 mb-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-destructive">7</div>
+              <div className="text-sm text-muted-foreground">Crisis Alerts Today</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-success">6</div>
+              <div className="text-sm text-muted-foreground">Successfully Resolved</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-warning">1</div>
+              <div className="text-sm text-muted-foreground">Escalated</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">2.3 min</div>
+              <div className="text-sm text-muted-foreground">Avg Response Time</div>
+            </div>
+          </div>
+
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsBarChart data={crisisInterventions}>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis dataKey="date" className="text-xs" />
+                <YAxis className="text-xs" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Bar dataKey="resolved" stackId="a" fill="#22c55e" name="Resolved" />
+                <Bar dataKey="escalated" stackId="a" fill="#f97316" name="Escalated" />
+              </RechartsBarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Insights and Recommendations */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card className="border-border/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-warning" />
+              AI Insights
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Positive Interactions</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-success/20 rounded-full">
-                    <div className="w-16 h-2 bg-success rounded-full"></div>
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Peak Usage Detected</p>
+                    <p className="text-xs text-muted-foreground">Session volume is 23% higher than usual during 3-5 PM. Consider adding more capacity.</p>
                   </div>
-                  <span className="text-sm font-medium">67%</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Neutral Interactions</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-muted/50 rounded-full">
-                    <div className="w-8 h-2 bg-muted-foreground rounded-full"></div>
+              <div className="p-3 bg-warning/5 border border-warning/20 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-warning mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Concerning Pattern</p>
+                    <p className="text-xs text-muted-foreground">Increase in exam-related anxiety. Consider proactive stress management resources.</p>
                   </div>
-                  <span className="text-sm font-medium">25%</span>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Concerning Interactions</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-destructive/20 rounded-full">
-                    <div className="w-2 h-2 bg-destructive rounded-full"></div>
+              <div className="p-3 bg-success/5 border border-success/20 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-success mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Improved Outcomes</p>
+                    <p className="text-xs text-muted-foreground">94% resolution rate this week, up 6% from last week. Great work!</p>
                   </div>
-                  <span className="text-sm font-medium">8%</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-primary" />
+              Language & Demographics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">English</span>
+                  <span className="text-sm font-medium">72%</span>
+                </div>
+                <Progress value={72} className="h-2" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">Hindi</span>
+                  <span className="text-sm font-medium">18%</span>
+                </div>
+                <Progress value={18} className="h-2" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">Spanish</span>
+                  <span className="text-sm font-medium">6%</span>
+                </div>
+                <Progress value={6} className="h-2" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm">Other</span>
+                  <span className="text-sm font-medium">4%</span>
+                </div>
+                <Progress value={4} className="h-2" />
+              </div>
+
+              <Separator className="my-4" />
+
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <div className="text-lg font-bold">18-22</div>
+                  <div className="text-xs text-muted-foreground">Avg Age Range</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold">2.4x</div>
+                  <div className="text-xs text-muted-foreground">Growth Rate</div>
                 </div>
               </div>
             </div>
