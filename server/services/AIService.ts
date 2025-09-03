@@ -129,11 +129,32 @@ class AIService {
         content: "Deep breathing exercises can help manage anxiety. Try the 4-7-8 technique: breathe in for 4 counts, hold for 7, exhale for 8. This activates your parasympathetic nervous system and promotes relaxation.",
         category: "anxiety_management",
         language: "en",
-        tags: ["breathing", "anxiety", "relaxation", "technique"],
+        tags: ["breathing", "anxiety", "relaxation", "technique", "panic", "worried"],
         source: "clinical_psychology"
       },
       {
-        content: "गहरी साँस लेने की तकनीक चिंता को कम करने में मदद कर सकती है। 4-7-8 तकनीक आज़माएं: 4 गिनती में सांस लें, 7 गिनती तक रोकें, 8 गिनती में छोड़ें।",
+        content: "Breakups and relationship endings are among life's most painful experiences. Allow yourself to grieve - it's normal to feel sad, angry, or confused. Reach out to friends, focus on self-care, and remember that healing takes time. You will get through this.",
+        category: "relationship_support",
+        language: "en",
+        tags: ["breakup", "relationship", "heartbreak", "grief", "loss", "dating"],
+        source: "relationship_counseling"
+      },
+      {
+        content: "When you're feeling physically unwell, it can impact your mental health too. Rest is important for recovery. If you're feeling sick regularly, consider talking to a healthcare provider. Sometimes physical symptoms can be related to stress or anxiety.",
+        category: "physical_wellness",
+        language: "en", 
+        tags: ["sick", "illness", "physical", "health", "body", "unwell"],
+        source: "health_services"
+      },
+      {
+        content: "Making friends in college can feel challenging, but remember that meaningful connections take time. Try joining clubs related to your interests, being a good listener, and showing genuine interest in others. Quality friendships develop gradually.",
+        category: "social_skills",
+        language: "en",
+        tags: ["friends", "friendship", "social", "connections", "relationships", "college"],
+        source: "social_psychology"
+      },
+      {
+        content: "गहरी साँस लेने की तकनीक चिंता को कम करने में मदद कर सकती है। 4-7-8 तकन���क आज़माएं: 4 गिनती में सांस लें, 7 गिनती तक रोकें, 8 गिनती में छोड़ें।",
         category: "anxiety_management", 
         language: "hi",
         tags: ["सांस", "चिंता", "आराम", "तकनीक"],
@@ -291,35 +312,38 @@ class AIService {
       // Fallback to in-memory semantic search with improved keyword matching
       if (this.knowledgeBase.length > 0) {
         const queryLower = query.toLowerCase();
-
+        
         // Enhanced keyword matching with scoring
         const scoredItems = this.knowledgeBase
           .map(item => {
             let score = 0;
-
+            
             // Language match bonus
             if (item.language === language) score += 2;
             else if (item.language === 'en') score += 1;
-
+            
             // Direct content match
             if (item.content.toLowerCase().includes(queryLower)) score += 3;
-
+            
             // Tag matches
-            const matchingTags = item.tags.filter(tag =>
-              queryLower.includes(tag.toLowerCase()) ||
+            const matchingTags = item.tags.filter(tag => 
+              queryLower.includes(tag.toLowerCase()) || 
               tag.toLowerCase().includes(queryLower)
             );
             score += matchingTags.length * 2;
-
+            
             // Category matches for common topics
             const topicMatches = {
               'anxiety': ['anxious', 'worried', 'panic', 'nervous'],
               'exam_stress': ['exam', 'test', 'grade', 'study'],
               'social_support': ['lonely', 'friends', 'social', 'isolated'],
+              'relationship_support': ['breakup', 'relationship', 'ex', 'dating'],
+              'physical_wellness': ['sick', 'illness', 'unwell', 'health'],
+              'social_skills': ['friends', 'friendship', 'social'],
               'wellness': ['sleep', 'tired', 'exhausted'],
               'crisis_intervention': ['suicide', 'harm', 'kill', 'die']
             };
-
+            
             Object.entries(topicMatches).forEach(([category, keywords]) => {
               if (item.category.includes(category)) {
                 keywords.forEach(keyword => {
@@ -327,7 +351,7 @@ class AIService {
                 });
               }
             });
-
+            
             return { ...item, score };
           })
           .filter(item => item.score > 0)
@@ -339,7 +363,7 @@ class AIService {
             source: 'semantic_memory_search',
             category: item.category
           }));
-
+        
         console.log(`🔍 RAG search via semantic matching: ${scoredItems.length} results`);
         return scoredItems;
       }
@@ -397,37 +421,90 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
     return 'neutral';
   }
 
-  private generatePatternBasedResponse(message: string, ragResults: RAGResult[], language: string): string {
-    const lowerMessage = message.toLowerCase();
+  private selectRandomResponse(responses: string[]): string {
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
 
+  private generatePatternBasedResponse(message: string, ragResults: RAGResult[], language: string, conversationContext?: ConversationContext): string {
+    const lowerMessage = message.toLowerCase();
+    
+    // Get conversation history for context
+    const recentMessages = conversationContext?.messages.slice(-3) || [];
+    const previousTopics = recentMessages.map(m => m.content.toLowerCase()).join(' ');
+    
     // Use RAG results if available - this is our knowledge-enhanced response
     if (ragResults.length > 0) {
       const primaryAdvice = ragResults[0].content;
       const category = ragResults[0].category;
-
-      // Contextual responses based on detected topics and RAG results
+      
+      // Relationship/breakup support
+      if (lowerMessage.includes('breakup') || lowerMessage.includes('relationship') || lowerMessage.includes('ex')) {
+        const responses = [
+          `I can hear the pain in what you're sharing about your relationship. Breakups are truly one of life's most difficult experiences. ${primaryAdvice} What's been the hardest part for you right now?`,
+          `Relationship endings can feel overwhelming, and your feelings are completely valid. ${primaryAdvice} Would you like to talk about what you're going through?`,
+          `I'm sorry you're dealing with this relationship pain. It takes strength to reach out. ${primaryAdvice} How are you taking care of yourself during this difficult time?`
+        ];
+        return this.selectRandomResponse(responses);
+      }
+      
+      // Physical illness/sickness
+      if (lowerMessage.includes('sick') || lowerMessage.includes('ill') || lowerMessage.includes('unwell')) {
+        const responses = [
+          `I'm sorry you're not feeling well physically. When our body isn't well, it can affect our mood too. ${primaryAdvice} How long have you been feeling this way?`,
+          `Being sick can be really draining, both physically and emotionally. ${primaryAdvice} Are you able to rest and take care of yourself?`,
+          `Physical illness can be tough to deal with. ${primaryAdvice} Is there anything specific that's worrying you about how you're feeling?`
+        ];
+        return this.selectRandomResponse(responses);
+      }
+      
+      // Loneliness/social issues with context awareness
+      if (lowerMessage.includes('lonely') || lowerMessage.includes('isolated')) {
+        if (previousTopics.includes('friend')) {
+          return `It sounds like you're really struggling with feeling disconnected from others. Building friendships can be challenging, but you're taking the right step by talking about it. ${primaryAdvice} What kind of connections are you hoping to build?`;
+        } else {
+          const responses = [
+            `Loneliness can feel so heavy, and I want you to know that many people experience this, especially students. ${primaryAdvice} What's been making you feel most isolated lately?`,
+            `Feeling lonely takes courage to admit. You're not alone in experiencing this. ${primaryAdvice} Have you been able to connect with anyone recently, even briefly?`
+          ];
+          return this.selectRandomResponse(responses);
+        }
+      }
+      
+      // Friends/social connections
+      if (lowerMessage.includes('friends') || lowerMessage.includes('friend')) {
+        if (lowerMessage.includes("don't have") || lowerMessage.includes("no friends")) {
+          return `Not having close friends can feel really isolating. Many students struggle with this, especially when starting college or during transitions. ${primaryAdvice} What's been your experience trying to connect with others?`;
+        } else {
+          return `Friendships can be complex and meaningful. ${primaryAdvice} What's going on with your friendships that you'd like to talk about?`;
+        }
+      }
+      
+      // Anxiety/worry
       if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety') || lowerMessage.includes('worried')) {
-        return `I understand you're feeling anxious, and that's completely valid. Many students experience anxiety, especially during challenging times. Here's a technique that can help: ${primaryAdvice} Would you like to try this breathing exercise together, or tell me more about what's making you feel anxious?`;
+        const responses = [
+          `Anxiety can feel so overwhelming, and it's completely understandable that you're experiencing this. ${primaryAdvice} What tends to trigger your anxiety the most?`,
+          `I can hear that you're struggling with anxious feelings. That's really common among students. ${primaryAdvice} Would you like to try some techniques together?`,
+          `Worry and anxiety can be exhausting. You're being so brave by talking about it. ${primaryAdvice} How long have you been feeling this way?`
+        ];
+        return this.selectRandomResponse(responses);
       }
-
+      
+      // Exam/academic stress
       if (lowerMessage.includes('exam') || lowerMessage.includes('test') || lowerMessage.includes('grade')) {
-        return `Exam stress is so common among students, and it sounds like you're really feeling the pressure. Remember, you're more than your grades. ${primaryAdvice} What specific part of your exams is causing you the most stress right now?`;
+        const responses = [
+          `Academic pressure can feel intense, and I hear that you're struggling with this. Remember, you're so much more than your grades. ${primaryAdvice} What aspect of your exams feels most overwhelming?`,
+          `Exam stress is incredibly common - you're definitely not alone in feeling this way. ${primaryAdvice} How have you been preparing, and what's been most challenging?`
+        ];
+        return this.selectRandomResponse(responses);
       }
-
-      if (lowerMessage.includes('lonely') || lowerMessage.includes('isolated') || lowerMessage.includes('friends') || lowerMessage.includes('social')) {
-        return `Feeling lonely can be really painful, especially when you're already dealing with other challenges. You're brave for reaching out. ${primaryAdvice} What's been the hardest part about feeling disconnected lately?`;
-      }
-
-      if (lowerMessage.includes('sleep') || lowerMessage.includes('tired') || lowerMessage.includes('exhausted')) {
-        return `Sleep problems can make everything else feel so much harder. Your mind and body need that rest to cope with daily stress. ${primaryAdvice} Have you noticed any patterns with what might be affecting your sleep?`;
-      }
-
-      if (lowerMessage.includes('stress') || lowerMessage.includes('overwhelmed') || lowerMessage.includes('pressure')) {
-        return `I hear that you're feeling overwhelmed. That takes real courage to acknowledge and share. ${primaryAdvice} Would you like to talk about what's been weighing on you most heavily?`;
-      }
-
-      // General knowledge-enhanced response
-      return `I'm here to listen and support you. Based on what you're sharing, here's something that might be helpful: ${primaryAdvice} Can you tell me more about what you're experiencing right now?`;
+      
+      // General supportive response with knowledge
+      const generalResponses = [
+        `Thank you for sharing what you're going through. ${primaryAdvice} I'm here to listen - can you tell me more about how you're feeling?`,
+        `I hear you, and I want you to know that reaching out was a brave step. ${primaryAdvice} What's been on your mind most lately?`,
+        `It sounds like you're dealing with something difficult. ${primaryAdvice} How can I best support you right now?`
+      ];
+      return this.selectRandomResponse(generalResponses);
     }
 
     // Emergency detection
@@ -436,25 +513,14 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
       return "I'm really concerned about what you're sharing with me. You matter so much, and I want you to get immediate support. Please reach out to a crisis counselor right now - call 988 or text HOME to 741741. You don't have to face this alone.";
     }
 
-    // Pattern-based responses with knowledge integration
-    if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety')) {
-      return "Anxiety can feel so overwhelming, and it's completely understandable that you're struggling with it. You're not alone in this - so many students experience anxiety. One technique that helps many people is the 4-7-8 breathing method: breathe in for 4 counts, hold for 7, then exhale for 8. Would you like to try it together?";
-    }
-
-    if (lowerMessage.includes('lonely') || lowerMessage.includes('isolated')) {
-      return "Feeling lonely is really hard, especially when you're trying to manage everything else. It takes courage to reach out, and I'm glad you're here talking with me. You matter, and your feelings are completely valid. Sometimes joining study groups or campus activities can help build connections. What's been making you feel most isolated lately?";
-    }
-
-    if (lowerMessage.includes('exam') || lowerMessage.includes('test') || lowerMessage.includes('grade')) {
-      return "Academic pressure can be intense, and it sounds like you're really feeling the weight of it. Remember that your worth isn't determined by your grades - you're so much more than your academic performance. One helpful approach is the Pomodoro Technique: study for 25 minutes, then take a 5-minute break. What's feeling most overwhelming about your exams right now?";
-    }
-
-    if (lowerMessage.includes('sleep') || lowerMessage.includes('tired') || lowerMessage.includes('exhausted')) {
-      return "Not getting enough sleep can make everything feel so much harder. Your body and mind need that rest to function well. Try maintaining a consistent sleep schedule and avoiding screens before bed. Have you noticed anything specific that's been keeping you awake?";
-    }
-
-    // Default empathetic response
-    return "I hear you, and I want you to know that what you're feeling matters. Sometimes just having someone listen can make a difference. I'm here with you right now. Can you tell me a bit more about what's been on your mind lately?";
+    // Basic fallback responses without RAG
+    const fallbackResponses = [
+      "I hear you, and I want you to know that what you're feeling matters. Sometimes just having someone listen can make a difference. I'm here with you right now. Can you tell me a bit more about what's been on your mind lately?",
+      "Thank you for reaching out and sharing with me. It takes courage to open up about what you're going through. I'm here to listen and support you. What would be most helpful for you right now?",
+      "I can sense that you're dealing with something important. Your feelings are valid, and I'm glad you're talking about it. What's been weighing on you most recently?"
+    ];
+    
+    return this.selectRandomResponse(fallbackResponses);
   }
 
   public async generateResponse(
@@ -498,13 +564,13 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
       // Perform RAG search
       const ragResults = await this.performRAGSearch(message, language);
 
-      // Build conversation history for GPT-4
+      // Build conversation history for GPT-3.5
       const conversationHistory = context.messages.slice(-10).map(msg => ({
         role: msg.role,
         content: msg.content
       }));
 
-      // Generate response using GPT-4 
+      // Generate response using GPT-3.5
       const systemPrompt = this.buildSystemPrompt(ragResults, language, context.userProfile);
       
       let response: string;
@@ -512,7 +578,7 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
       // Check if we have a valid OpenAI API key
       if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.startsWith('sk-dummy') || process.env.OPENAI_API_KEY.includes('placeholder')) {
         console.log('⚠️ OpenAI API key not configured, using enhanced pattern matching');
-        response = this.generatePatternBasedResponse(message, ragResults, language);
+        response = this.generatePatternBasedResponse(message, ragResults, language, context);
       } else {
         try {
           const completion = await this.openai.chat.completions.create({
@@ -529,10 +595,10 @@ Remember: You're here to listen, support, and help. Be the friend they need righ
           });
 
           response = completion.choices[0]?.message?.content || "I understand you're reaching out. Can you tell me more about how you're feeling?";
-          console.log('✅ GPT-4 response generated successfully');
+          console.log('✅ GPT-3.5 response generated successfully');
         } catch (openaiError: any) {
           console.error('❌ OpenAI API error:', openaiError.message);
-          response = this.generatePatternBasedResponse(message, ragResults, language);
+          response = this.generatePatternBasedResponse(message, ragResults, language, context);
         }
       }
 
