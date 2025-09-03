@@ -1,4 +1,4 @@
-interface DemoMessage {
+export interface DemoMessage {
   id: string;
   content: string;
   isUser: boolean;
@@ -7,7 +7,7 @@ interface DemoMessage {
   sentiment?: string;
 }
 
-interface DemoConversation {
+export interface DemoConversation {
   id: string;
   title: string;
   description: string;
@@ -98,7 +98,7 @@ export const demoConversations: DemoConversation[] = [
       },
       {
         id: "m2",
-        content: "मैं समझ सकता हूँ कि आप कितना दुखी महसूस कर रहे होंगे। Breakup एक बहुत ही दुखदायी अनुभव है और आपके emotions बिल्कुल सामान्य हैं। यह ठीक है कि आप upset हैं - इसका मतलब है कि वह relationship आपके लिए meaningful था। आप अकेले नहीं हैं इस दर्द में। क्या आप मुझे बता सकते हैं कि अभी आपको सबसे ज्याद��� क्या परेशान कर रहा है?",
+        content: "मैं समझ सकता हूँ कि आप कितना दुखी महसूस कर रहे होंगे। Breakup एक बहुत ही दुखदायी अनुभव है और आपके emotions बिल्कुल सामान्य हैं। यह ठीक है कि आप upset हैं - इसका मतलब है कि वह relationship आपके लिए meaningful था। आप अकेले नहीं हैं इस दर्द में। क्या आप मुझे बता सकते हैं कि अभी आपको सबसे ज्यादा क्या परेशान कर रहा है?",
         isUser: false,
         timestamp: new Date(Date.now() - 880000),
         language: "hi",
@@ -106,7 +106,7 @@ export const demoConversations: DemoConversation[] = [
       },
       {
         id: "m3",
-        content: "मुझे लग रहा है जैसे मैंने कुछ गलत किया है। हो सकता है अगर मैं बेहतर होता तो यह नहीं होता। अब मैं अकेला हूँ और मुझे नहीं पता कि आगे क्या करूँ।",
+        content: "मुझे लग रहा है जैसे मैंने कुछ गलत किया है। हो सकता है अगर मैं बेहतर होता तो यह नहीं होता। अब मैं अकेला हूँ और मुझे नहीं पत��� कि आगे क्या करूँ।",
         isUser: true,
         timestamp: new Date(Date.now() - 860000),
         language: "hi",
@@ -114,7 +114,7 @@ export const demoConversations: DemoConversation[] = [
       },
       {
         id: "m4",
-        content: "आप अपने आप को दोष दे रहे हैं, लेकिन relationship में दो लोग होते हैं और इसकी जिम्मेदारी केवल आप पर नहीं है। यह सोचना कि 'अगर मैं बेहतर होता' एक natural reaction है जब हम दुखी होते हैं, लेकिन यह हमेशा सच नहीं होता। आप एक valuable person है���, और आपकी worth किसी relationship के status से नहीं तय होती। अभी सबसे important यह है कि आप अपना ख्याल रखें। क्या आप अपने friends या family से बात कर पा रहे हैं?",
+        content: "आप अपने आप को दोष दे रहे हैं, लेकिन relationship में दो लोग होते हैं और इसकी जिम्मेदारी केवल आप पर नहीं है। यह सोचना कि 'अगर मैं बेहतर होता' एक natural reaction है जब हम दुखी होते हैं, लेकिन यह हमेशा सच नहीं होता। आप एक valuable person हैं, और आपकी worth किसी relationship के status से नहीं तय होती। अभी सबसे important यह है कि आप अपना ख्याल रखें। क्या आप अपने friends या family से बात कर पा रहे हैं?",
         isUser: false,
         timestamp: new Date(Date.now() - 840000),
         language: "hi",
@@ -130,7 +130,7 @@ export const demoConversations: DemoConversation[] = [
       },
       {
         id: "m6",
-        content: "यह समझना बहुत अच्छी बात है कि आपके पास supportive friends हैं - यह दिखाता है कि आप lovable हैं! जो friends आपका साथ दे रहे हैं, वे आपमें प्यार ��र care के योग्य qualities देखते हैं। Trust build करना time लेता है, और यह ठीक है। अभी आपको जल्दबाजी की जरूरत नहीं है। Healing एक process है। पहले खुद से trust build करें - खुद का ख्याल रखें, अपनी activities में engage होएं, और वे चीजें करें जो आपको खुशी देती हैं। Trust आएगा जब आप ready होंगे।",
+        content: "यह समझना बहुत अच्छी बात है कि आपके पास supportive friends हैं - यह दिखाता है कि आप lovable हैं! जो friends आपका साथ दे रहे हैं, वे आपमें प्यार और care के योग्य qualities देखते हैं। Trust build करना time लेता है, और यह ठीक है। अभी आपको जल्दबाजी की जरूरत नहीं है। Healing एक process है। पहले खुद से trust build करें - खुद का ख्याल रखें, अपनी activities में engage होएं, और वे चीजें करें जो आपको खुशी देती हैं। Trust आएगा जब आप ready होंगे।",
         isUser: false,
         timestamp: new Date(Date.now() - 800000),
         language: "hi",
